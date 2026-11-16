@@ -10,7 +10,7 @@
 | :--- | :--- |
 | [`ft30402_turbowarp.js`](./ft30402_turbowarp.js) | **Extension Scratch / TurboWarp** autonome (utilise l'API *Web Serial* du navigateur, zéro installation). |
 | [`ft30402.py`](./ft30402.py) | **Bibliothèque Python** avec thread d'arrière-plan intégré et commandes en français pour **Thonny**. |
-| [`exemple_thonny.py`](./exemple_thonny.py) | Script de démarrage rapide pour Thonny (commutateur télérupteur `E1` $\rightarrow$ LED en `M2`). |
+| [`exemple_thonny.py`](./exemple_thonny.py) | Script de démarrage rapide pour Thonny (commutateur télérupteur `E1` → LED en `M2`). |
 | [`exemples/tableau_de_bord_30402.sb3`](./exemples/tableau_de_bord_30402.sb3) | **Projet TurboWarp `.sb3` clé en main** avec tableau de bord graphique IHM, voyant `E1` et jauges temps réel. |
 | [`exemples/01_telerupteur_led.py`](./exemples/01_telerupteur_led.py) | Projet Python Niv. 1 : Commutateur d'éclairage (Télérupteur avec anti-rebond). |
 | [`exemples/02_barriere_automatique.py`](./exemples/02_barriere_automatique.py) | Projet Python Niv. 2 : Barrière de parking automatisée avec fins de course et sécurité optique. |
@@ -35,13 +35,13 @@ Sortie au début des années 1990, l'**Intelligent Interface (Réf. `30 402`)** 
 
 ```mermaid
 flowchart LR
-    PC["💻 PC Moderne\n(TurboWarp ou Thonny)"] <-->|"USB ↔ RS-232\n9600 bauds (8N1)"| UART["Prise DB9\nRS-232"]
-    UART <--> CPU["🧠 Microprocesseur\nIntel 80C32\n(EPROM 64K / RAM 32K)"]
-    CPU --> SRO["Registre à décalage Sortie\n+ Ponts en H"]
-    SRO --> M["⚙️ Sorties M1 à M4\n(Moteurs / Lampes / Vannes)"]
-    E["🔘 Entrées Digitales\nE1 à E8"] --> SRI["Registre à décalage Entrée"]
+    PC["💻 PC Moderne (TurboWarp / Thonny)"] <-->|"USB ↔ RS-232 (9600 8N1)"| UART["Prise DB9 RS-232"]
+    UART <--> CPU["🧠 Microprocesseur Intel 80C32 (EPROM 64K / RAM 32K)"]
+    CPU --> SRO["Registre à décalage Sortie + Ponts en H"]
+    SRO --> M["⚙️ Sorties M1 à M4 (Moteurs / Lampes / Vannes)"]
+    E["🔘 Entrées Digitales E1 à E8"] --> SRI["Registre à décalage Entrée"]
     SRI --> CPU
-    EXEY["🌡️ Entrées Analogiques\nEX et EY (0 - 5 kΩ)"] --> MUX["Convertisseur\n0 à 1000"]
+    EXEY["🌡️ Entrées Analogiques EX et EY (0 - 5 kΩ)"] --> MUX["Convertisseur 0 à 1000"]
     MUX --> CPU
 ```
 
@@ -51,13 +51,12 @@ flowchart LR
 
 Sur la tranche droite du boîtier se trouvent **16 colonnes de 2 douilles superposées** (au format fiches bananes 2,6 mm fischertechnik). Chaque composant se branche simplement **verticalement** (une fiche dans le trou du haut, une fiche dans le trou du bas de la même colonne) :
 
-```text
-+-----------------------------------------------------------------------------------+
-|  9V=... |  ⊥   | E1 | E2 | EX | EY | E3 | E4 | E5 | E6 | E7 | E8 | M1 | M2 | M3 | M4 |
-|    O    |  O   | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  |  <- Rangée Haut
-|    O    |  O 🔴| O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  | O  |  <- Rangée Bas
-+-----------------------------------------------------------------------------------+
-```
+![Disposition du bornier 30 402](./docs/bornier_30402.svg)
+
+| `9V=` | `⊥` | `E1` | `E2` | `EX` | `EY` | `E3` | `E4` | `E5` | `E6` | `E7` | `E8` | `M1` | `M2` | `M3` | `M4` |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ |
+| ⚫ | ⚫🔴 | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ | ⚫ |
 
 * **`M1` à `M4` (4 sorties bidirectionnelles 9V) :**
   * Pour brancher **4 moteurs** (avant / arrière / arrêt / frein), ou des **lampes**, **LEDs**, **électroaimants** et **électrovannes**.
@@ -91,7 +90,7 @@ Sur la tranche droite du boîtier se trouvent **16 colonnes de 2 douilles superp
 3. Une alimentation **9V DC** (`+` au centre) — la **LED rouge** sur le boîtier (colonne `⊥`) doit être allumée.
 
 ### Identifier son numéro de port `COM` sous Windows
-* Ouvrez le **Gestionnaire de périphériques** Windows $\rightarrow$ section **Ports (COM et LPT)**, et repérez la ligne *Prolific USB-to-Serial Comm Port (COMxx)* (par exemple `COM3` ou `COM20`).
+* Ouvrez le **Gestionnaire de périphériques** Windows → section **Ports (COM et LPT)**, et repérez la ligne *Prolific USB-to-Serial Comm Port (COMxx)* (par exemple `COM3` ou `COM20`).
 * Ou lancez simplement `python ft30402.py` : le script détecte et affiche automatiquement le port de l'adaptateur USB-Série en ignorant les ports Bluetooth Windows.
 
 > [!WARNING]
@@ -110,10 +109,10 @@ En mode connecté (*Online Mode*), le `30 402` fonctionne selon un protocole **M
 
 | Sens | Octets | Contenu binaire |
 | :--- | :--- | :--- |
-| **📤 PC $\rightarrow$ 30 402** | **Octet 1** *(Commande)* | `0xC1` (193) = lire `E1..E8` seuls<br>`0xC5` (197) = lire `E1..E8` + `EX`<br>`0xC9` (201) = lire `E1..E8` + `EY` |
-| **📤 PC $\rightarrow$ 30 402** | **Octet 2** *(Moteurs)* | `[M4][M3][M2][M1]` (2 bits par moteur : `00`=Arrêt, `01`=Gauche, `10`=Droite, `11`=Frein) |
-| **📥 30 402 $\rightarrow$ PC** | **Octet 1** *(Entrées)* | `[E8][E7][E6][E5][E4][E3][E2][E1]` (1 bit par capteur : `1`=Pressé, `0`=Relâché) |
-| **📥 30 402 $\rightarrow$ PC** | **Octets 2 & 3** *(Analog)* | Valeur 16 bits (`MSB`, `LSB`) entre `0` et `1000` pour `EX` ou `EY` |
+| **📤 PC → 30 402** | **Octet 1** *(Commande)* | `0xC1` (193) = lire `E1..E8` seuls<br>`0xC5` (197) = lire `E1..E8` + `EX`<br>`0xC9` (201) = lire `E1..E8` + `EY` |
+| **📤 PC → 30 402** | **Octet 2** *(Moteurs)* | `[M4][M3][M2][M1]` (2 bits par moteur : `00`=Arrêt, `01`=Gauche, `10`=Droite, `11`=Frein) |
+| **📥 30 402 → PC** | **Octet 1** *(Entrées)* | `[E8][E7][E6][E5][E4][E3][E2][E1]` (1 bit par capteur : `1`=Pressé, `0`=Relâché) |
+| **📥 30 402 → PC** | **Octets 2 & 3** *(Analog)* | Valeur 16 bits (`MSB`, `LSB`) entre `0` et `1000` pour `EX` ou `EY` |
 
 ---
 
@@ -123,13 +122,13 @@ Grâce à la technologie **Web Serial**, le navigateur dialogue directement avec
 
 ### Charger l'extension dans TurboWarp
 1. Ouvrez **[editor.turbowarp.org](https://editor.turbowarp.org/)** dans **Google Chrome**, **Microsoft Edge** ou **TurboWarp Desktop**.
-2. Cliquez en bas à gauche sur **Ajouter une extension** $\rightarrow$ **Extension personnalisée** (*Custom Extension*).
+2. Cliquez en bas à gauche sur **Ajouter une extension** → **Extension personnalisée** (*Custom Extension*).
 3. Dans l'onglet **Fichier**, sélectionnez [`ft30402_turbowarp.js`](./ft30402_turbowarp.js).
 4. **Cochez impérativement « Exécuter sans bac à sable » (*Run without sandbox*)** puis validez.
 
 ### Créer une IHM (Tableau de bord interactif) dans Scratch
 Contrairement à un programme qui tourne à l'aveugle, **TurboWarp permet de créer un véritable écran de contrôle industriel (SCADA / IHM)** sur la scène :
-* **Piloter les moteurs depuis l'écran :** Créez des lutins « Bouton Monter », « Bouton Descendre » ou utilisez les flèches du clavier (`quand la flèche haut est pressée` $\rightarrow$ `moteur M1 tourner vers la droite`).
+* **Piloter les moteurs depuis l'écran :** Créez des lutins « Bouton Monter », « Bouton Descendre » ou utilisez les flèches du clavier (`quand la flèche haut est pressée` → `moteur M1 tourner vers la droite`).
 * **Visualiser l'état des boutons en direct :** Créez un lutin « Voyant E1 » avec 2 costumes (gris = éteint, vert = allumé). Dans une boucle `répéter indéfiniment`, si `<l'entrée E1 est pressée ?>` alors basculer sur le costume vert, sinon gris !
 * **Afficher des jauges en temps réel :** Cochez la case à côté du bloc `(valeur analogique [EX])` ou `(octet des entrées E8..E1 (en binaire))` pour afficher la jauge directement sur la scène.
 
@@ -176,7 +175,7 @@ Quand l'entrée [E1 v] est [pressée (active) v]
 
 ### Installation dans Thonny (une seule fois)
 1. Ouvrez **Thonny**.
-2. Menu **Outils** $\rightarrow$ **Gérer les paquets…** $\rightarrow$ cherchez **`pyserial`** $\rightarrow$ cliquez sur **Installer**.
+2. Menu **Outils** → **Gérer les paquets…** → cherchez **`pyserial`** → cliquez sur **Installer**.
 3. Ouvrez un fichier dans le même dossier que [`ft30402.py`](./ft30402.py).
 
 ### Les commandes Python en un coup d'œil
@@ -248,7 +247,7 @@ while True:
    * Lancez ce script dans Thonny (ou affichez le bloc `(octet des entrées E8..E1 (en binaire))` dans TurboWarp) : quand les jeunes appuient sur `E1`, `E2`, `E4`, ils voient en direct l'octet passer de `00000000` à `00001011` ! C'est le meilleur moyen visuel de comprendre ce qu'est un bit, un octet et une puissance de 2.
 5. **Progression en 4 défis d'atelier (1h30) :**
    * 🟢 **Défi 1 (15 min) :** Allumer une LED sur `M2` quand on appuie sur `E1` (découverte de la polarité d'une LED).
-   * 🟡 **Défi 2 (20 min) :** Transformer le bouton poussoir en **télérupteur** (un appui allume, le suivant éteint $\rightarrow$ découverte de la notion de variable d'état et de rebond mécanique).
+   * 🟡 **Défi 2 (20 min) :** Transformer le bouton poussoir en **télérupteur** (un appui allume, le suivant éteint → découverte de la notion de variable d'état et de rebond mécanique).
    * 🟠 **Défi 3 (25 min) :** Construire un **lampadaire intelligent** qui s'allume tout seul quand on cache la photorésistance branchée sur `EX` (découverte d'un capteur analogique et d'un seuil `>`).
    * 🔴 **Défi 4 (30 min) :** Créer une **IHM graphique** dans TurboWarp qui affiche sur l'écran un jumeau numérique de la maquette en temps réel.
 

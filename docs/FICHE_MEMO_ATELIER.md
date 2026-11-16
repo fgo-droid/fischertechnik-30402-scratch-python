@@ -14,7 +14,7 @@ Chaque composant se branche **verticalement** (un fil dans le trou du haut, un f
 | **`9V=...`** | Alimentation par fils | Batterie 9V *(uniquement si la prise jack ronde n'est pas branchée !)* |
 | **`⊥` (LED 🔴)** | Témoin & Masse | La LED rouge s'allume dès que l'interface reçoit du 9V (`+` au centre). |
 | **`E1`, `E2`** | Entrées Digitales 1 & 2 | Bouton-poussoir, contact magnétique Reed, phototransistor. |
-| **`EX`, `EY`** | Entrées Analogiques | Photorésistance (lumière), CTN (température), potentiomètre $\rightarrow$ renvoie **`0` à `1000`**. |
+| **`EX`, `EY`** | Entrées Analogiques | Photorésistance (lumière), CTN (température), potentiomètre → renvoie **`0` à `1000`**. |
 | **`E3` à `E8`** | Entrées Digitales 3 à 8 | Boutons-poussoirs (fins de course), capteurs tout-ou-rien. |
 | **`M1` à `M4`** | 4 Sorties Puissance (9V) | Moteurs (2 sens), ampoules, LEDs *(attention au sens +/- !)*, électrovannes. |
 
@@ -22,7 +22,7 @@ Chaque composant se branche **verticalement** (un fil dans le trou du haut, un f
 
 ### 2. Charger l'extension dans TurboWarp
 1. Ouvrir **[editor.turbowarp.org](https://editor.turbowarp.org/)** dans Chrome ou Edge.
-2. Cliquer sur **Ajouter une extension** (en bas à gauche) $\rightarrow$ **Extension personnalisée**.
+2. Cliquer sur **Ajouter une extension** (en bas à gauche) → **Extension personnalisée**.
 3. Choisir le fichier `ft30402_turbowarp.js` (ou coller l'URL GitHub Raw) et **cocher « Exécuter sans bac à sable » (*Run without sandbox*)**.
 
 ### 3. Les Blocs TurboWarp essentiels

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 190" width="100%">
+  <defs>
+    <style>
+      .bg { fill: #1e293b; rx: 12px; }
+      .header-box { fill: #334155; rx: 6px; }
+      .col-pwr { fill: #7f1d1d; rx: 6px; }
+      .col-in  { fill: #065f46; rx: 6px; }
+      .col-ana { fill: #92400e; rx: 6px; }
+      .col-out { fill: #1e3a8a; rx: 6px; }
+      .label { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #ffffff; text-anchor: middle; }
+      .sub { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; fill: #cbd5e1; text-anchor: middle; }
+      .socket-outer { fill: #0f172a; stroke: #94a3b8; stroke-width: 2.5; }
+      .socket-inner { fill: #020617; }
+      .led-glow { fill: #ef4444; stroke: #fca5a5; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Fond général du bornier -->
+  <rect x="4" y="4" width="852" height="182" class="bg" stroke="#475569" stroke-width="2"/>
+
+  <!-- Légende supérieure -->
+  <text x="64"  y="25" class="sub">Alimentation</text>
+  <text x="160" y="25" class="sub">Entrées 1-2</text>
+  <text x="256" y="25" class="sub">Analogiques</text>
+  <text x="448" y="25" class="sub">Entrées Digitales 3 à 8</text>
+  <text x="688" y="25" class="sub">Sorties Moteurs / Lampes 9V</text>
+
+  <!-- 16 Colonnes (largeur 44, pas 48, départ x=20) -->
+  <!-- 1: 9V= -->
+  <g transform="translate(20, 34)">
+    <rect width="44" height="120" class="col-pwr"/>
+    <text x="22" y="22" class="label">9V=</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 2: Masse / LED -->
+  <g transform="translate(68, 34)">
+    <rect width="44" height="120" class="col-pwr"/>
+    <text x="22" y="22" class="label">⊥</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="15" cy="94" r="10" class="socket-outer"/><circle cx="15" cy="94" r="5" class="socket-inner"/>
+    <circle cx="34" cy="94" r="5.5" class="led-glow"/>
+  </g>
+
+  <!-- 3: E1 -->
+  <g transform="translate(116, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E1</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 4: E2 -->
+  <g transform="translate(164, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E2</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 5: EX -->
+  <g transform="translate(212, 34)">
+    <rect width="44" height="120" class="col-ana"/>
+    <text x="22" y="22" class="label">EX</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 6: EY -->
+  <g transform="translate(260, 34)">
+    <rect width="44" height="120" class="col-ana"/>
+    <text x="22" y="22" class="label">EY</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 7..12: E3..E8 -->
+  <g transform="translate(308, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E3</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(356, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E4</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(404, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E5</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(452, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E6</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(500, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E7</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(548, 34)">
+    <rect width="44" height="120" class="col-in"/>
+    <text x="22" y="22" class="label">E8</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- 13..16: M1..M4 -->
+  <g transform="translate(596, 34)">
+    <rect width="44" height="120" class="col-out"/>
+    <text x="22" y="22" class="label">M1</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(644, 34)">
+    <rect width="44" height="120" class="col-out"/>
+    <text x="22" y="22" class="label">M2</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(692, 34)">
+    <rect width="44" height="120" class="col-out"/>
+    <text x="22" y="22" class="label">M3</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+  <g transform="translate(740, 34)">
+    <rect width="44" height="120" class="col-out"/>
+    <text x="22" y="22" class="label">M4</text>
+    <circle cx="22" cy="54" r="10" class="socket-outer"/><circle cx="22" cy="54" r="5" class="socket-inner"/>
+    <circle cx="22" cy="94" r="10" class="socket-outer"/><circle cx="22" cy="94" r="5" class="socket-inner"/>
+  </g>
+
+  <!-- Indications Rangée Haut / Bas à droite -->
+  <text x="820" y="92"  class="sub" fill="#94a3b8">← Haut</text>
+  <text x="820" y="132" class="sub" fill="#94a3b8">← Bas</text>
+  <text x="430" y="174" class="sub" fill="#e2e8f0">Chaque capteur ou moteur se branche verticalement ↕ (une fiche en haut, une fiche en bas de la même colonne)</text>
+</svg>
