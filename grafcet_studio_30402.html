@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GRAFCET Studio 30 402 — Automate Séquentiel fischertechnik</title>
+  <title>GRAFCET & LLWin Studio 30 402 — Automate fischertechnik</title>
   <style>
     :root {
       --bg-app: #f1f5f9;
@@ -31,7 +31,6 @@
       overflow: hidden;
     }
 
-    /* --- Barre supérieure (Header & Commandes Automate) --- */
     header {
       background: #0f172a;
       color: white;
@@ -110,17 +109,15 @@
       padding: 7px 10px;
     }
 
-    /* --- Layout Principal (2 Colonnes : Éditeur GRAFCET + Panneau E/S Temps Réel) --- */
     main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 370px;
+      grid-template-columns: 1fr 400px;
       overflow: hidden;
     }
 
-    /* --- Zone Diagramme GRAFCET --- */
     .grafcet-workspace {
-      padding: 20px 28px 60px 28px;
+      padding: 18px 24px 60px 24px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -132,23 +129,40 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       background: white;
       padding: 10px 16px;
       border-radius: 8px;
       border: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Afficheur digital Opérateur (façon Meldung / Annonce LLWin) */
+    .operator-banner {
+      width: 100%;
+      background: #0f172a;
+      color: #4ade80;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-family: Consolas, monospace;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 5px solid var(--primary);
     }
 
     .grafcet-chain {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      padding-left: 24px;
+      padding-left: 16px;
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
     }
 
-    /* Bloc Étape + Actions */
     .step-row {
       display: flex;
       align-items: stretch;
@@ -156,7 +170,6 @@
       position: relative;
     }
 
-    /* Carré d'étape CEI 61131-3 */
     .step-node {
       width: 82px;
       min-height: 76px;
@@ -173,7 +186,6 @@
       user-select: none;
       transition: all 0.2s;
     }
-    /* Double carré pour l'étape initiale 0 */
     .step-node.initial::after {
       content: "";
       position: absolute;
@@ -210,9 +222,8 @@
       color: white;
     }
 
-    /* Connecteur horizontal Étape -> Action */
     .action-connector {
-      width: 24px;
+      width: 22px;
       height: 2.5px;
       background: #334155;
       align-self: center;
@@ -222,7 +233,6 @@
       background: var(--meca-green);
     }
 
-    /* Rectangle des Actions associées à l'étape */
     .action-box {
       flex: 1;
       background: white;
@@ -255,12 +265,22 @@
       background: transparent;
       padding: 2px 6px;
       border-radius: 4px;
-      width: 100%;
+      flex: 1;
     }
     .step-title-input:focus {
       border-color: var(--primary);
       background: white;
       outline: none;
+    }
+
+    .beep-toggle {
+      font-size: 11.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     .motors-grid {
@@ -295,11 +315,10 @@
       color: #1e40af;
     }
 
-    /* Liaison verticale + Barre de Transition CEI 61131-3 */
     .transition-block {
       display: flex;
       align-items: center;
-      padding-left: 40px; /* Centré sous le carré de 82px */
+      padding-left: 40px;
       min-height: 58px;
       position: relative;
     }
@@ -333,7 +352,8 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 12.5px;
+      font-size: 12px;
+      flex-wrap: wrap;
     }
     .transition-block.ready .transition-cond-box {
       background: #dcfce7;
@@ -358,40 +378,25 @@
       background: #16a34a;
     }
 
-    /* Boucle de retour vers l'étape 0 */
-    .loopback-footer {
-      margin-left: 24px;
-      padding: 8px 14px;
-      background: #e2e8f0;
-      border-radius: 6px;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: #334155;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* --- Panneau Latéral Droit (Supervision E/S & Simulateur) --- */
     aside {
       background: var(--bg-panel);
       border-left: 1px solid var(--border);
-      padding: 14px 16px;
+      padding: 12px 14px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
     }
 
     .panel-card {
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 9px 11px;
       background: #f8fafc;
     }
     .panel-card h3 {
-      margin: 0 0 8px 0;
-      font-size: 13px;
+      margin: 0 0 7px 0;
+      font-size: 12.5px;
       color: #0f172a;
       display: flex;
       justify-content: space-between;
@@ -401,94 +406,71 @@
     .inputs-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
+      gap: 5px;
     }
     .input-pill {
       background: white;
       border: 2px solid #cbd5e1;
       border-radius: 6px;
-      padding: 6px 4px;
+      padding: 4px 3px;
       text-align: center;
       cursor: pointer;
       user-select: none;
-      transition: all 0.1s;
     }
-    .input-pill:hover { border-color: #64748b; }
     .input-pill.active {
       background: #16a34a;
       border-color: #14532d;
       color: white;
       font-weight: bold;
     }
-    .input-pill .e-name { font-size: 12px; font-weight: 700; display: block; }
-    .input-pill .e-val { font-size: 11px; opacity: 0.85; font-family: Consolas, monospace; }
+    .input-pill .e-name { font-size: 11.5px; font-weight: 700; display: block; }
+    .input-pill .e-val { font-size: 10.5px; opacity: 0.85; font-family: Consolas, monospace; }
 
-    .analog-row {
-      margin-bottom: 8px;
-    }
-    .analog-header {
+    /* Mode Check Interface LLWin : boutons manuels Gauche / Stop / Droite */
+    .check-motor-row {
       display: flex;
+      align-items: center;
       justify-content: space-between;
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-    .analog-row input[type="range"] {
-      width: 100%;
-      accent-color: var(--primary);
-    }
-
-    .outputs-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-    }
-    .output-badge {
       background: white;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
-      padding: 6px 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 4px 8px;
+      margin-bottom: 5px;
       font-size: 12px;
-      font-weight: 700;
     }
-    .output-state {
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: Consolas, monospace;
+    .manual-btns button {
+      padding: 3px 7px;
       font-size: 11px;
+      margin-left: 2px;
       background: #e2e8f0;
-      color: #475569;
+      color: #1e293b;
     }
-    .output-state.right { background: #dcfce7; color: #166534; }
-    .output-state.left  { background: #dbeafe; color: #1e40af; }
-    .output-state.brake { background: #fef3c7; color: #92400e; }
+    .manual-btns button.active-left  { background: #2563eb; color: white; }
+    .manual-btns button.active-stop  { background: #64748b; color: white; }
+    .manual-btns button.active-right { background: #16a34a; color: white; }
 
     .spy-box {
       background: #0f172a;
       color: #38bdf8;
       font-family: Consolas, monospace;
-      font-size: 11.5px;
-      padding: 10px;
+      font-size: 11px;
+      padding: 8px 10px;
       border-radius: 6px;
-      line-height: 1.5;
+      line-height: 1.45;
     }
   </style>
 </head>
 <body>
 
-  <!-- BARRE DE CONTRÔLE SUPÉRIEURE -->
   <header>
     <div class="brand">
       <span style="font-size:22px;">📊</span>
       <div>
-        <h1>GRAFCET Studio 30 402</h1>
-        <div style="font-size:11px; color:#94a3b8;">Automate Séquentiel CEI 61131-3 (SFC) — fischertechnik Intelligent Interface</div>
+        <h1>GRAFCET &amp; LLWin Studio 30 402</h1>
+        <div style="font-size:11px; color:#94a3b8;">Remplacement moderne de LLWin (Check Interface, Compteurs d'impulsions, Sauts &amp; Grafcet)</div>
       </div>
       <span id="serialStatusBadge" class="badge-status">🔌 Mode Simulation (Hors-ligne)</span>
-      <span id="plcStatusBadge" class="badge-status">⏹️ AUTOMATE EN PAUSE</span>
+      <span id="plcStatusBadge" class="badge-status">🎛️ MODE MANUEL (CHECK INTERFACE)</span>
     </div>
 
     <div class="toolbar">
@@ -496,10 +478,10 @@
         🔌 Connecter 30 402 (COM)
       </button>
       <button id="btnRun" class="btn-run" onclick="startPlc()">
-        ▶️ START (RUN)
+        ▶️ START GRAFCET
       </button>
       <button id="btnStop" class="btn-stop" onclick="stopPlc()">
-        ⏹️ STOP
+        ⏹️ STOP (Mode Manuel)
       </button>
       <button class="btn-init" onclick="initPlc()" title="Revenir à l'étape initiale 0">
         🔄 INIT (Étape 0)
@@ -510,19 +492,19 @@
     </div>
   </header>
 
-  <!-- ESPACE DE TRAVAIL PRINCIPAL -->
   <main>
     <!-- Zone Gauche : Diagramme GRAFCET Interactif -->
     <section class="grafcet-workspace">
       <div class="workspace-toolbar">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <label for="presetSelect" style="font-size:13px; font-weight:700;">📂 Modèle GRAFCET :</label>
+          <label for="presetSelect" style="font-size:13px; font-weight:700;">📂 Programme :</label>
           <select id="presetSelect" class="preset-select" onchange="loadPreset(this.value)">
             <option value="vending">🪙 1. Distributeur Automatique à Monnayeur (Mouchoirs)</option>
             <option value="barrier">🚧 2. Barrière de Parking Automatique (Sécurité EX)</option>
             <option value="toggle">💡 3. Télérupteur (Bouton E1 → LED en M2)</option>
             <option value="press">💨 4. Presse Électropneumatique Bimanuelle (E1 ET E2)</option>
-            <option value="empty">📄 5. Grafcet Vierge (2 étapes)</option>
+            <option value="pulses">🔢 5. Positionnement par Compteur d'Impulsions (LLWin)</option>
+            <option value="empty">📄 6. Grafcet Vierge (2 étapes)</option>
           </select>
         </div>
 
@@ -534,52 +516,48 @@
         </div>
       </div>
 
+      <!-- Afficheur Digital Opérateur (Annonce LLWin) -->
+      <div class="operator-banner">
+        <div>📢 <b>AFFICHEUR :</b> <span id="operatorMessage">En attente (Mode Check Interface actif à droite)</span></div>
+        <div>⏱️ Étape <b id="activeStepLabel">0</b> (<span id="stepTimerLabel">0.0 s</span>)</div>
+      </div>
+
       <!-- Chaîne graphique des étapes et transitions -->
       <div id="grafcetContainer" class="grafcet-chain"></div>
     </section>
 
-    <!-- Zone Droite : Supervision Temps Réel & Simulateur E/S -->
+    <!-- Zone Droite : Check Interface (LLWin) + Supervision E/S + Oscilloscope -->
     <aside>
       <div class="panel-card">
         <h3>
-          <span>🔘 Entrées Digitales (E1 à E8)</span>
-          <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">(Cliquez pour simuler)</span>
+          <span>🔘 Entrées E1 à E8 &amp; Compteurs</span>
+          <span style="font-size:10.5px; color:var(--text-muted); font-weight:normal;">(Clic = Simuler)</span>
         </h3>
         <div id="inputsGrid" class="inputs-grid"></div>
       </div>
 
       <div class="panel-card">
-        <h3>🌡️ Entrées Analogiques (EX & EY)</h3>
-        <div class="analog-row">
-          <div class="analog-header">
-            <span>Capteur EX (0–5 kΩ) :</span>
-            <span id="exValueLabel">500 / 1000</span>
-          </div>
-          <input type="range" id="exSlider" min="0" max="1000" value="500" oninput="onSliderInput('EX', this.value)">
-        </div>
-        <div class="analog-row" style="margin-bottom:0;">
-          <div class="analog-header">
-            <span>Capteur EY (0–5 kΩ) :</span>
-            <span id="eyValueLabel">500 / 1000</span>
-          </div>
-          <input type="range" id="eySlider" min="0" max="1000" value="500" oninput="onSliderInput('EY', this.value)">
-        </div>
-      </div>
-
-      <div class="panel-card">
-        <h3>⚙️ État des 4 Sorties (M1 à M4)</h3>
-        <div id="outputsList" class="outputs-list"></div>
-        <button class="btn-stop" style="width:100%; margin-top:8px;" onclick="emergencyStop()">
+        <h3>
+          <span>🎛️ Sorties M1–M4 (Check Interface LLWin)</span>
+          <span style="font-size:10.5px; color:var(--text-muted); font-weight:normal;">(Cliquable en STOP)</span>
+        </h3>
+        <div id="outputsList"></div>
+        <button class="btn-stop" style="width:100%; margin-top:4px; padding:5px;" onclick="emergencyStop()">
           🚨 COUPER TOUS LES MOTEURS
         </button>
       </div>
 
       <div class="panel-card">
-        <h3>⏱️ État de l'Automate Séquentiel</h3>
-        <div style="font-size:12.5px; line-height:1.6;">
-          <div>Étape Active : <b id="activeStepLabel" style="color:var(--meca-green); font-size:14px;">Étape 0</b></div>
-          <div>Temps dans l'étape (<b>T</b>) : <b id="stepTimerLabel">0.0 s</b></div>
+        <h3>📈 Entrées Analogiques EX / EY &amp; Plotter</h3>
+        <div style="font-size:11.5px; display:flex; justify-content:space-between; margin-bottom:2px;">
+          <span style="color:#16a34a; font-weight:bold;">● EX : <span id="exValueLabel">500</span></span>
+          <input type="range" id="exSlider" min="0" max="1000" value="500" style="width:180px;" oninput="onSliderInput('EX', this.value)">
         </div>
+        <div style="font-size:11.5px; display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#ea580c; font-weight:bold;">● EY : <span id="eyValueLabel">500</span></span>
+          <input type="range" id="eySlider" min="0" max="1000" value="500" style="width:180px;" oninput="onSliderInput('EY', this.value)">
+        </div>
+        <canvas id="miniPlotter" width="350" height="85" style="width:100%; background:#090d16; border-radius:6px; display:block;"></canvas>
       </div>
 
       <div class="spy-box" id="spyBox">
@@ -590,154 +568,200 @@
   </main>
 
   <script>
-    // =========================================================================
-    // 1. ÉTAT MATÉRIEL (30 402 Web Serial + Mode Simulation)
-    // =========================================================================
     const CMD_ONLY_DIGITAL = 0xC1;
     const CMD_READ_EX = 0xC5;
     const CMD_READ_EY = 0xC9;
 
-    const MOTOR_STOP = 0;
-    const MOTOR_LEFT = 1;
-    const MOTOR_RIGHT = 2;
-    const MOTOR_BRAKE = 3;
+    let port = null, reader = null, writer = null;
+    let isSerialConnected = false, isPolling = false, toggleAnalog = false;
 
-    let port = null;
-    let reader = null;
-    let writer = null;
-    let isSerialConnected = false;
-    let isPolling = false;
-    let toggleAnalog = false;
-
-    // Entrées matérielles (du 30 402) + Entrées simulées à la souris (OU logique)
     const hwInputs = { E1:false, E2:false, E3:false, E4:false, E5:false, E6:false, E7:false, E8:false };
     const simInputs = { E1:false, E2:false, E3:false, E4:false, E5:false, E6:false, E7:false, E8:false };
+    const prevEffectiveInputs = { E1:false, E2:false, E3:false, E4:false, E5:false, E6:false, E7:false, E8:false };
+    const pulseCounters = { E1:0, E2:0, E3:0, E4:0, E5:0, E6:0, E7:0, E8:0 };
+
     const analogValues = { EX: 500, EY: 500 };
     const motors = [0, 0, 0, 0]; // M1..M4
-    let lastDigitalByte = 0;
+    const plotHistory = [];
 
     function getEffectiveInput(name) {
       return Boolean(hwInputs[name] || simInputs[name]);
     }
 
+    // Synthétiseur de Bip Sonore Web Audio (comme le bloc Ton/Beep de LLWin)
+    let audioCtx = null;
+    function playBeep(freq = 880, durationMs = 140) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "square";
+        osc.frequency.value = freq;
+        gain.gain.value = 0.08;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        setTimeout(() => osc.stop(), durationMs);
+      } catch (_) {}
+    }
+
     // =========================================================================
-    // 2. MOTEUR D'EXÉCUTION GRAFCET (CEI 61131-3)
+    // MOTEUR D'EXÉCUTION GRAFCET & LLWIN
     // =========================================================================
     let plcRunning = false;
     let activeStepIndex = 0;
     let stepStartTime = performance.now();
     let grafcetSteps = [];
 
-    // Modèles GRAFCET préconfigurés
     const PRESETS = {
       vending: [
         {
-          title: "Attente Pièce (Repos)",
+          title: "Attente Pièce (Insérez une pièce en E1)",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 1 }
         },
         {
-          title: "Crédit Validé (Voyant M2 ON) — Attente Bouton Client E3",
+          title: "Crédit Validé (Voyant M2 ON) — Appuyez sur E3",
+          beep: true,
           actions: [0, 2, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 1.0, nextStep: 2 }
         },
         {
           title: "Éjection du Paquet (Poussoir M1 Droite jusqu'à E5)",
+          beep: false,
           actions: [2, 2, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E5", threshold: 500, delay: 2.0 }
+          transition: { type: "INPUT_HIGH", input: "E5", threshold: 500, delay: 2.0, nextStep: 3 }
         },
         {
           title: "Pause fin de course avant (0.5 s)",
+          beep: false,
           actions: [0, 2, 0, 0],
-          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 0.5 }
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 0.5, nextStep: 4 }
         },
         {
           title: "Retour du Poussoir au Repos (M1 Gauche jusqu'à E4)",
+          beep: true,
           actions: [1, 0, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E4", threshold: 500, delay: 2.0 }
+          transition: { type: "INPUT_HIGH", input: "E4", threshold: 500, delay: 2.0, nextStep: 0 }
         }
       ],
       barrier: [
         {
-          title: "Barrière Fermée — Attente Demande d'Accès (E1)",
+          title: "Barrière Fermée — Attente Véhicule (E1)",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 1 }
         },
         {
-          title: "Montée Barrière (M1 Droite + Feu M2) jusqu'au fin de course haut E2",
+          title: "Montée Barrière (M1 Droite + Feu M2) jusqu'à E2",
+          beep: true,
           actions: [2, 2, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E2", threshold: 500, delay: 2.0 }
+          transition: { type: "INPUT_HIGH", input: "E2", threshold: 500, delay: 2.0, nextStep: 2 }
         },
         {
           title: "Maintien Ouverte pendant 3 secondes",
+          beep: false,
           actions: [0, 2, 0, 0],
-          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 3.0 }
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 3.0, nextStep: 3 }
         },
         {
-          title: "Vérification Sécurité Optique (Pas d'obstacle : EX < 600)",
+          title: "Sécurité Optique : Attente voie libre (EX < 600)",
+          beep: false,
           actions: [0, 2, 0, 0],
-          transition: { type: "ANALOG_LT", input: "EX", threshold: 600, delay: 1.0 }
+          transition: { type: "ANALOG_LT", input: "EX", threshold: 600, delay: 1.0, nextStep: 4 }
         },
         {
-          title: "Descente Barrière (M1 Gauche) jusqu'au fin de course bas E3",
+          title: "Descente Barrière (M1 Gauche) jusqu'à E3",
+          beep: true,
           actions: [1, 2, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 2.0 }
+          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 2.0, nextStep: 0 }
         }
       ],
       toggle: [
         {
           title: "LED Éteinte — Attente Appui sur E1",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 1 }
         },
         {
-          title: "LED Allumée (M2 ON) — Attente Relâchement de E1",
+          title: "LED Allumée (M2 ON) — Relâchez E1",
+          beep: true,
           actions: [0, 2, 0, 0],
-          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0, nextStep: 2 }
         },
         {
           title: "LED Maintenue Allumée — Attente 2e Appui sur E1",
+          beep: false,
           actions: [0, 2, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 3 }
         },
         {
-          title: "Extinction LED — Attente Relâchement de E1",
+          title: "Extinction LED — Relâchez E1",
+          beep: true,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0, nextStep: 0 }
         }
       ],
       press: [
         {
-          title: "Repos — Attente Commande Bimanuelle (E1 ET E2 pressés)",
+          title: "Sécurité : Appuyez simultanément sur E1 ET E2",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "BIMANUAL_E1_E2", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "BIMANUAL_E1_E2", input: "E1", threshold: 500, delay: 1.0, nextStep: 1 }
         },
         {
-          title: "Compresseur M1 + Descente Vérin Presse M2 (pendant 2 s)",
+          title: "Compresseur M1 + Descente Vérin Presse M2 (2 s)",
+          beep: true,
           actions: [2, 2, 0, 0],
-          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0 }
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0, nextStep: 2 }
         },
         {
-          title: "Remontée Presse & Soufflette d'Éjection M3 (pendant 1 s)",
+          title: "Remontée Presse & Soufflette d'Éjection M3 (1 s)",
+          beep: false,
           actions: [2, 0, 2, 0],
-          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 1.0, nextStep: 3 }
         },
         {
-          title: "Sécurité Anti-Répétition : Relâcher E1",
+          title: "Sécurité Anti-Répétition : Relâchez E1",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0, nextStep: 0 }
+        }
+      ],
+      pulses: [
+        {
+          title: "Prise d'origine Axe M1 (Gauche jusqu'au fin de course E2)",
+          beep: false,
+          actions: [1, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E2", threshold: 500, delay: 1.0, nextStep: 1 }
+        },
+        {
+          title: "Avance M1 Droite pendant exactement 5 impulsions sur E1",
+          beep: true,
+          actions: [2, 0, 0, 0],
+          transition: { type: "PULSE_COUNT", input: "E1", threshold: 5, delay: 1.0, nextStep: 2 }
+        },
+        {
+          title: "Position atteinte ! Pause de 2 secondes (Lampe M2 ON)",
+          beep: true,
+          actions: [0, 2, 0, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 5, delay: 2.0, nextStep: 0 }
         }
       ],
       empty: [
         {
           title: "Étape Initiale (Repos)",
+          beep: false,
           actions: [0, 0, 0, 0],
-          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 1 }
         },
         {
           title: "Étape 1 (Action M1 Droite)",
+          beep: true,
           actions: [2, 0, 0, 0],
-          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0 }
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0, nextStep: 0 }
         }
       ]
     };
@@ -750,6 +774,8 @@
           return !getEffectiveInput(trans.input);
         case "BIMANUAL_E1_E2":
           return getEffectiveInput("E1") && getEffectiveInput("E2");
+        case "PULSE_COUNT":
+          return (pulseCounters[trans.input] || 0) >= Number(trans.threshold || 1);
         case "ANALOG_GT":
           return (analogValues[trans.input] || 0) > Number(trans.threshold);
         case "ANALOG_LT":
@@ -763,44 +789,70 @@
       }
     }
 
-    function applyCurrentStepOutputs() {
-      if (!plcRunning || grafcetSteps.length === 0) {
-        motors[0] = 0; motors[1] = 0; motors[2] = 0; motors[3] = 0;
-        return;
+    function activateStep(newIndex) {
+      if (grafcetSteps.length === 0) return;
+      activeStepIndex = ((newIndex % grafcetSteps.length) + grafcetSteps.length) % grafcetSteps.length;
+      stepStartTime = performance.now();
+      // Remise à zéro des compteurs d'impulsions d'étape
+      for (let i = 1; i <= 8; i++) pulseCounters[`E${i}`] = 0;
+
+      const step = grafcetSteps[activeStepIndex];
+      if (plcRunning && step && step.beep) {
+        playBeep(880, 130);
       }
+      if (plcRunning) {
+        applyCurrentStepOutputs();
+      }
+      renderGrafcetDiagram();
+    }
+
+    function applyCurrentStepOutputs() {
+      if (!plcRunning || grafcetSteps.length === 0) return;
       const step = grafcetSteps[activeStepIndex] || grafcetSteps[0];
       for (let i = 0; i < 4; i++) {
         motors[i] = Number(step.actions[i]) || 0;
       }
     }
 
-    // Boucle d'évaluation de l'automate GRAFCET (25 Hz / 40 ms)
+    // Boucle automate (25 Hz / 40 ms)
     setInterval(() => {
+      // Détection des fronts montants sur E1..E8 pour les compteurs d'impulsions
+      for (let i = 1; i <= 8; i++) {
+        const k = `E${i}`;
+        const cur = getEffectiveInput(k);
+        if (cur && !prevEffectiveInputs[k]) {
+          pulseCounters[k] = (pulseCounters[k] || 0) + 1;
+        }
+        prevEffectiveInputs[k] = cur;
+      }
+
       const elapsedSec = (performance.now() - stepStartTime) / 1000;
 
       if (plcRunning && grafcetSteps.length > 0) {
         const currentStep = grafcetSteps[activeStepIndex];
         if (currentStep && evaluateTransition(currentStep.transition, elapsedSec)) {
-          // Franchissement de la transition vers l'étape suivante (avec rebouclage à 0)
-          activeStepIndex = (activeStepIndex + 1) % grafcetSteps.length;
-          stepStartTime = performance.now();
-          renderGrafcetDiagram();
+          const targetIdx = currentStep.transition.nextStep !== undefined
+            ? Number(currentStep.transition.nextStep)
+            : (activeStepIndex + 1) % grafcetSteps.length;
+          activateStep(targetIdx);
         }
         applyCurrentStepOutputs();
       }
+
+      // Échantillonnage du mini-oscilloscope
+      plotHistory.push({ ex: analogValues.EX, ey: analogValues.EY });
+      if (plotHistory.length > 100) plotHistory.shift();
 
       updateSidePanelUI(elapsedSec);
     }, 40);
 
     // =========================================================================
-    // 3. COMMANDES START / STOP / INIT / ÉDITION
+    // COMMANDES START / STOP / CHECK INTERFACE MANUEL
     // =========================================================================
     function startPlc() {
       plcRunning = true;
-      stepStartTime = performance.now();
-      applyCurrentStepOutputs();
+      activateStep(activeStepIndex);
       updateHeaderBadges();
-      renderGrafcetDiagram();
     }
 
     function stopPlc() {
@@ -811,25 +863,23 @@
     }
 
     function initPlc() {
-      activeStepIndex = 0;
-      stepStartTime = performance.now();
-      applyCurrentStepOutputs();
-      renderGrafcetDiagram();
+      activateStep(0);
     }
 
     function forceNextStep() {
       if (grafcetSteps.length === 0) return;
-      activeStepIndex = (activeStepIndex + 1) % grafcetSteps.length;
-      stepStartTime = performance.now();
-      applyCurrentStepOutputs();
-      renderGrafcetDiagram();
+      const cur = grafcetSteps[activeStepIndex];
+      const nextIdx = (cur && cur.transition.nextStep !== undefined)
+        ? Number(cur.transition.nextStep)
+        : (activeStepIndex + 1) % grafcetSteps.length;
+      activateStep(nextIdx);
     }
 
-    function jumpToStep(idx) {
-      activeStepIndex = idx;
-      stepStartTime = performance.now();
-      applyCurrentStepOutputs();
-      renderGrafcetDiagram();
+    function setManualMotor(mIndex, dirCode) {
+      if (plcRunning) {
+        stopPlc();
+      }
+      motors[mIndex] = dirCode;
     }
 
     function emergencyStop() {
@@ -846,10 +896,15 @@
     }
 
     function addStep() {
+      const newIdx = grafcetSteps.length;
+      if (newIdx > 0) {
+        grafcetSteps[newIdx - 1].transition.nextStep = newIdx;
+      }
       grafcetSteps.push({
-        title: `Étape ${grafcetSteps.length}`,
+        title: `Étape ${newIdx}`,
+        beep: false,
         actions: [0, 0, 0, 0],
-        transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0, nextStep: 0 }
       });
       renderGrafcetDiagram();
     }
@@ -857,9 +912,7 @@
     function deleteStep(idx) {
       if (grafcetSteps.length <= 1) return;
       grafcetSteps.splice(idx, 1);
-      if (activeStepIndex >= grafcetSteps.length) {
-        activeStepIndex = 0;
-      }
+      if (activeStepIndex >= grafcetSteps.length) activeStepIndex = 0;
       renderGrafcetDiagram();
     }
 
@@ -892,7 +945,7 @@
     }
 
     // =========================================================================
-    // 4. RENDU GRAPHIQUE DU DIAGRAMME GRAFCET
+    // RENDU DU DIAGRAMME GRAFCET
     // =========================================================================
     function renderGrafcetDiagram() {
       const container = document.getElementById("grafcetContainer");
@@ -902,26 +955,25 @@
 
       grafcetSteps.forEach((step, idx) => {
         const isActive = idx === activeStepIndex;
+        if (step.transition.nextStep === undefined) {
+          step.transition.nextStep = (idx + 1) % grafcetSteps.length;
+        }
 
-        // 1. Ligne Étape + Action
         const stepRow = document.createElement("div");
         stepRow.className = "step-row" + (isActive ? " active" : "");
 
-        // Carré d'étape
         const stepNode = document.createElement("div");
         stepNode.className = "step-node" + (idx === 0 ? " initial" : "") + (isActive ? " active" : "");
         stepNode.title = "Cliquez pour activer cette étape immédiatement";
-        stepNode.onclick = () => jumpToStep(idx);
+        stepNode.onclick = () => activateStep(idx);
         stepNode.innerHTML = `
           <div class="step-num">${idx}</div>
           <div class="step-token">${isActive ? "● ACTIF" : "Repos"}</div>
         `;
 
-        // Connecteur horizontal
         const connector = document.createElement("div");
         connector.className = "action-connector";
 
-        // Boîte d'actions associées
         const actionBox = document.createElement("div");
         actionBox.className = "action-box";
 
@@ -935,10 +987,20 @@
         titleInput.onchange = (e) => { step.title = e.target.value; };
         headerDiv.appendChild(titleInput);
 
+        // Option Bip Sonore (façon LLWin)
+        const beepLabel = document.createElement("label");
+        beepLabel.className = "beep-toggle";
+        const beepChk = document.createElement("input");
+        beepChk.type = "checkbox";
+        beepChk.checked = Boolean(step.beep);
+        beepChk.onchange = (e) => { step.beep = e.target.checked; };
+        beepLabel.appendChild(beepChk);
+        beepLabel.appendChild(document.createTextNode("🔊 Bip"));
+        headerDiv.appendChild(beepLabel);
+
         if (grafcetSteps.length > 1) {
           const delBtn = document.createElement("button");
           delBtn.textContent = "🗑️";
-          delBtn.title = "Supprimer cette étape";
           delBtn.style.cssText = "background:transparent;border:none;padding:2px 6px;cursor:pointer;font-size:14px;";
           delBtn.onclick = () => deleteStep(idx);
           headerDiv.appendChild(delBtn);
@@ -978,7 +1040,7 @@
         stepRow.appendChild(actionBox);
         container.appendChild(stepRow);
 
-        // 2. Barre de Transition sous l'étape
+        // Barre de Transition + Choix de l'étape cible (Saut LLWin)
         const trans = step.transition;
         const condReady = evaluateTransition(trans, isActive ? elapsedSec : 0);
 
@@ -997,15 +1059,14 @@
 
         const lamp = document.createElement("span");
         lamp.className = "cond-lamp";
-        lamp.id = `transLamp_${idx}`;
         condBox.appendChild(lamp);
 
-        // Sélecteur du type de réceptivité
         const typeSelect = document.createElement("select");
         typeSelect.innerHTML = `
           <option value="INPUT_HIGH" ${trans.type === "INPUT_HIGH" ? "selected" : ""}>Entrée pressée (= 1)</option>
           <option value="INPUT_LOW" ${trans.type === "INPUT_LOW" ? "selected" : ""}>Entrée relâchée (= 0)</option>
           <option value="BIMANUAL_E1_E2" ${trans.type === "BIMANUAL_E1_E2" ? "selected" : ""}>Bimanuel (E1 ET E2 = 1)</option>
+          <option value="PULSE_COUNT" ${trans.type === "PULSE_COUNT" ? "selected" : ""}>Compteur Impulsions &gt;= N</option>
           <option value="ANALOG_GT" ${trans.type === "ANALOG_GT" ? "selected" : ""}>Analogique &gt; Seuil</option>
           <option value="ANALOG_LT" ${trans.type === "ANALOG_LT" ? "selected" : ""}>Analogique &lt; Seuil</option>
           <option value="TIMER" ${trans.type === "TIMER" ? "selected" : ""}>Temporisation T &gt;= (s)</option>
@@ -1015,15 +1076,14 @@
           trans.type = e.target.value;
           if ((trans.type === "ANALOG_GT" || trans.type === "ANALOG_LT") && !["EX", "EY"].includes(trans.input)) {
             trans.input = "EX";
-          } else if ((trans.type === "INPUT_HIGH" || trans.type === "INPUT_LOW") && !trans.input.startsWith("E")) {
+          } else if (["INPUT_HIGH", "INPUT_LOW", "PULSE_COUNT"].includes(trans.type) && !trans.input.startsWith("E")) {
             trans.input = "E1";
           }
           renderGrafcetDiagram();
         };
         condBox.appendChild(typeSelect);
 
-        // Paramètre complémentaire selon le type choisi
-        if (trans.type === "INPUT_HIGH" || trans.type === "INPUT_LOW") {
+        if (["INPUT_HIGH", "INPUT_LOW", "PULSE_COUNT"].includes(trans.type)) {
           const inSel = document.createElement("select");
           for (let i = 1; i <= 8; i++) {
             const opt = document.createElement("option");
@@ -1034,6 +1094,16 @@
           }
           inSel.onchange = (e) => { trans.input = e.target.value; };
           condBox.appendChild(inSel);
+
+          if (trans.type === "PULSE_COUNT") {
+            const pulseIn = document.createElement("input");
+            pulseIn.type = "number";
+            pulseIn.min = 1; pulseIn.max = 500;
+            pulseIn.style.width = "56px";
+            pulseIn.value = trans.threshold || 5;
+            pulseIn.onchange = (e) => { trans.threshold = Number(e.target.value); };
+            condBox.appendChild(pulseIn);
+          }
         } else if (trans.type === "ANALOG_GT" || trans.type === "ANALOG_LT") {
           const anaSel = document.createElement("select");
           ["EX", "EY"].forEach((ch) => {
@@ -1049,7 +1119,7 @@
           const numIn = document.createElement("input");
           numIn.type = "number";
           numIn.min = 0; numIn.max = 1000; numIn.step = 10;
-          numIn.style.width = "68px";
+          numIn.style.width = "64px";
           numIn.value = trans.threshold || 500;
           numIn.onchange = (e) => { trans.threshold = Number(e.target.value); };
           condBox.appendChild(numIn);
@@ -1057,30 +1127,40 @@
           const secIn = document.createElement("input");
           secIn.type = "number";
           secIn.min = 0.1; secIn.max = 60; secIn.step = 0.5;
-          secIn.style.width = "64px";
+          secIn.style.width = "58px";
           secIn.value = trans.delay || 1.0;
           secIn.onchange = (e) => { trans.delay = Number(e.target.value); };
           condBox.appendChild(secIn);
-
           const unitSpan = document.createElement("span");
           unitSpan.textContent = "s";
           condBox.appendChild(unitSpan);
         }
 
+        // Sélecteur d'étape de destination (Saut / Rebouclage façon LLWin)
+        const jumpSpan = document.createElement("span");
+        jumpSpan.textContent = "→ aller à";
+        jumpSpan.style.cssText = "color:#475569; font-weight:600; margin-left:4px;";
+        condBox.appendChild(jumpSpan);
+
+        const nextSel = document.createElement("select");
+        grafcetSteps.forEach((_, targetIdx) => {
+          const opt = document.createElement("option");
+          opt.value = targetIdx;
+          opt.textContent = `Étape ${targetIdx}`;
+          if (Number(trans.nextStep) === targetIdx) opt.selected = true;
+          nextSel.appendChild(opt);
+        });
+        nextSel.onchange = (e) => { trans.nextStep = Number(e.target.value); };
+        condBox.appendChild(nextSel);
+
         transBlock.appendChild(vLine);
         transBlock.appendChild(condBox);
         container.appendChild(transBlock);
       });
-
-      // Pied de rebouclage vers l'Étape 0
-      const footer = document.createElement("div");
-      footer.className = "loopback-footer";
-      footer.innerHTML = "↩️ Retour cyclique à l'<b>Étape Initiale 0</b>";
-      container.appendChild(footer);
     }
 
     // =========================================================================
-    // 5. PANNEAU DE SUPERVISION DROIT & SIMULATEUR
+    // PANNEAU DE DROITE (CHECK INTERFACE LLWIN + MINI OSCILLOSCOPE)
     // =========================================================================
     function initSidePanelUI() {
       const grid = document.getElementById("inputsGrid");
@@ -1090,26 +1170,28 @@
         const pill = document.createElement("div");
         pill.className = "input-pill";
         pill.id = `pill_${key}`;
-        pill.onclick = () => {
-          simInputs[key] = !simInputs[key];
-        };
+        pill.onclick = () => { simInputs[key] = !simInputs[key]; };
         pill.innerHTML = `
           <span class="e-name">${key}</span>
-          <span class="e-val" id="val_${key}">0</span>
+          <span class="e-val" id="val_${key}">0 (0p)</span>
         `;
         grid.appendChild(pill);
       }
 
       const outList = document.getElementById("outputsList");
       outList.innerHTML = "";
-      for (let m = 1; m <= 4; m++) {
-        const badge = document.createElement("div");
-        badge.className = "output-badge";
-        badge.innerHTML = `
-          <span>M${m}</span>
-          <span class="output-state" id="outState_M${m}">ARRÊT</span>
+      for (let m = 0; m < 4; m++) {
+        const row = document.createElement("div");
+        row.className = "check-motor-row";
+        row.innerHTML = `
+          <b>M${m + 1}</b>
+          <div class="manual-btns">
+            <button id="btnM_${m}_1" onclick="setManualMotor(${m}, 1)">⏪ Gauche</button>
+            <button id="btnM_${m}_0" onclick="setManualMotor(${m}, 0)">⏹ Arrêt</button>
+            <button id="btnM_${m}_2" onclick="setManualMotor(${m}, 2)">⏩ Droite/ON</button>
+          </div>
         `;
-        outList.appendChild(badge);
+        outList.appendChild(row);
       }
     }
 
@@ -1139,14 +1221,13 @@
         plcBadge.className = "badge-status running";
         btnRun.className = "btn-run active";
       } else {
-        plcBadge.textContent = "⏹️ AUTOMATE EN PAUSE";
+        plcBadge.textContent = "🎛️ MODE MANUEL (CHECK INTERFACE)";
         plcBadge.className = "badge-status";
         btnRun.className = "btn-run";
       }
     }
 
     function updateSidePanelUI(elapsedSec) {
-      // 1. Entrées E1..E8
       for (let i = 1; i <= 8; i++) {
         const key = `E${i}`;
         const active = getEffectiveInput(key);
@@ -1154,76 +1235,86 @@
         const valSpan = document.getElementById(`val_${key}`);
         if (pill && valSpan) {
           pill.className = "input-pill" + (active ? " active" : "");
-          valSpan.textContent = active ? "1" : "0";
+          valSpan.textContent = `${active ? "1" : "0"} (${pulseCounters[key]}p)`;
         }
       }
 
-      // 2. Analogiques EX & EY
-      document.getElementById("exValueLabel").textContent = `${analogValues.EX} / 1000`;
-      document.getElementById("eyValueLabel").textContent = `${analogValues.EY} / 1000`;
+      document.getElementById("exValueLabel").textContent = analogValues.EX;
+      document.getElementById("eyValueLabel").textContent = analogValues.EY;
       if (isSerialConnected) {
         document.getElementById("exSlider").value = analogValues.EX;
         document.getElementById("eySlider").value = analogValues.EY;
       }
 
-      // 3. Sorties M1..M4
-      const labels = [
-        { txt: "ARRÊT", cls: "output-state" },
-        { txt: "GAUCHE", cls: "output-state left" },
-        { txt: "DROITE/ON", cls: "output-state right" },
-        { txt: "FREIN", cls: "output-state brake" }
-      ];
+      // Boutons Check Interface M1..M4
       for (let m = 0; m < 4; m++) {
-        const el = document.getElementById(`outState_M${m + 1}`);
-        if (el) {
-          const info = labels[motors[m]] || labels[0];
-          el.textContent = info.txt;
-          el.className = info.cls;
+        const cur = motors[m];
+        const bL = document.getElementById(`btnM_${m}_1`);
+        const bS = document.getElementById(`btnM_${m}_0`);
+        const bR = document.getElementById(`btnM_${m}_2`);
+        if (bL && bS && bR) {
+          bL.className = cur === 1 ? "active-left" : "";
+          bS.className = cur === 0 ? "active-stop" : "";
+          bR.className = cur === 2 ? "active-right" : "";
         }
       }
 
-      // 4. Voyants de transition en temps réel
       grafcetSteps.forEach((step, idx) => {
         const isActive = idx === activeStepIndex;
         const ready = evaluateTransition(step.transition, isActive ? elapsedSec : 0);
         const block = document.getElementById(`transBlock_${idx}`);
-        if (block) {
-          block.className = "transition-block" + (ready ? " ready" : "");
-        }
+        if (block) block.className = "transition-block" + (ready ? " ready" : "");
       });
 
-      // 5. Infos étape et espion binaire
-      document.getElementById("activeStepLabel").textContent = `Étape ${activeStepIndex}`;
+      const curStep = grafcetSteps[activeStepIndex];
+      document.getElementById("operatorMessage").textContent = plcRunning && curStep
+        ? curStep.title
+        : "Automate en STOP — Cliquez sur M1..M4 à droite pour tester en direct (Check Interface)";
+      document.getElementById("activeStepLabel").textContent = activeStepIndex;
       document.getElementById("stepTimerLabel").textContent = `${elapsedSec.toFixed(1)} s`;
+
+      // Tracé du mini-oscilloscope EX / EY
+      const canvas = document.getElementById("miniPlotter");
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        const yOf = (v) => h - (Math.min(1000, Math.max(0, v)) / 1000) * (h - 10) - 5;
+        if (plotHistory.length > 1) {
+          const dx = w / 99;
+          ctx.strokeStyle = "#fb923c"; ctx.lineWidth = 1.5; ctx.beginPath();
+          plotHistory.forEach((p, i) => { if (i === 0) ctx.moveTo(0, yOf(p.ey)); else ctx.lineTo(i * dx, yOf(p.ey)); });
+          ctx.stroke();
+
+          ctx.strokeStyle = "#4ade80"; ctx.lineWidth = 2; ctx.beginPath();
+          plotHistory.forEach((p, i) => { if (i === 0) ctx.moveTo(0, yOf(p.ex)); else ctx.lineTo(i * dx, yOf(p.ex)); });
+          ctx.stroke();
+        }
+      }
 
       const mByte = buildMotorByte();
       let eByte = 0;
-      for (let i = 0; i < 8; i++) {
-        if (getEffectiveInput(`E${i + 1}`)) eByte |= (1 << i);
-      }
+      for (let i = 0; i < 8; i++) if (getEffectiveInput(`E${i + 1}`)) eByte |= (1 << i);
       document.getElementById("spyBox").innerHTML =
         `📤 TX : [0xC5, 0b${mByte.toString(2).padStart(8, "0")}] (M4..M1)<br>` +
         `📥 RX : [0b${eByte.toString(2).padStart(8, "0")}]       (E8..E1)`;
     }
 
     // =========================================================================
-    // 6. COMMUNICATION WEB SERIAL AVEC LE 30 402 (9600 BAUDS 8N1)
+    // COMMUNICATION WEB SERIAL AVEC LE 30 402
     // =========================================================================
     function buildMotorByte() {
       return (motors[0] & 3) | ((motors[1] & 3) << 2) | ((motors[2] & 3) << 4) | ((motors[3] & 3) << 6);
     }
 
     async function toggleSerialConnection() {
-      if (isSerialConnected) {
-        await disconnectSerial();
-      } else {
-        await connectSerial();
-      }
+      if (isSerialConnected) await disconnectSerial();
+      else await connectSerial();
     }
 
     async function connectSerial() {
       if (!("serial" in navigator)) {
-        alert("Web Serial n'est pas supporté par ce navigateur. Ouvrez ce fichier dans Google Chrome ou Microsoft Edge.");
+        alert("Ouvrez ce fichier dans Google Chrome ou Microsoft Edge pour utiliser Web Serial.");
         return;
       }
       try {
@@ -1235,30 +1326,16 @@
         updateHeaderBadges();
         startSerialPolling();
       } catch (err) {
-        if (err.name !== "NotFoundError") {
-          alert("Erreur d'ouverture du port COM : " + err.message);
-        }
+        if (err.name !== "NotFoundError") alert("Erreur d'ouverture du port COM : " + err.message);
         await disconnectSerial();
       }
     }
 
     async function disconnectSerial() {
       isPolling = false;
-      try {
-        if (writer) {
-          await writer.write(new Uint8Array([CMD_ONLY_DIGITAL, 0x00]));
-          writer.releaseLock();
-        }
-      } catch (_) {}
-      try {
-        if (reader) {
-          await reader.cancel();
-          reader.releaseLock();
-        }
-      } catch (_) {}
-      try {
-        if (port) await port.close();
-      } catch (_) {}
+      try { if (writer) { await writer.write(new Uint8Array([CMD_ONLY_DIGITAL, 0x00])); writer.releaseLock(); } } catch (_) {}
+      try { if (reader) { await reader.cancel(); reader.releaseLock(); } } catch (_) {}
+      try { if (port) await port.close(); } catch (_) {}
       writer = null; reader = null; port = null;
       isSerialConnected = false;
       for (let i = 1; i <= 8; i++) hwInputs[`E${i}`] = false;
@@ -1294,9 +1371,8 @@
           await writer.write(new Uint8Array([cmd, buildMotorByte()]));
           const resp = await readBytesWithTimeout(3, 150);
           if (resp && resp.length === 3) {
-            lastDigitalByte = resp[0];
             for (let i = 0; i < 8; i++) {
-              hwInputs[`E${i + 1}`] = Boolean(lastDigitalByte & (1 << i));
+              hwInputs[`E${i + 1}`] = Boolean(resp[0] & (1 << i));
             }
             analogValues[ch] = (resp[1] << 8) | resp[2];
           }
@@ -1310,7 +1386,6 @@
       }
     }
 
-    // Initialisation au chargement de la page
     initSidePanelUI();
     loadPreset("vending");
     updateHeaderBadges();

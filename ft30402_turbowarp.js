@@ -77,6 +77,9 @@
         E1: 0, E2: 0, E3: 0, E4: 0,
         E5: 0, E6: 0, E7: 0, E8: 0,
       };
+      // Position absolue par axe (façon Positionier-Baustein de LLWin : +1 en droite, -1 en gauche)
+      this.axisPositions = [0, 0, 0, 0];
+      this.encoderMap = { E1: 0, E2: 1, E3: 2, E4: 3 };
 
       // État des 2 entrées analogiques 16 bits EX et EY
       this.analog = {
@@ -335,6 +338,44 @@
             text: "remettre à zéro le compteur d'impulsions [INPUT]",
             arguments: {
               INPUT: { type: Scratch.ArgumentType.STRING, menu: "inputMenu", defaultValue: "E1" },
+            },
+          },
+          {
+            opcode: "homeAxisLLWin",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_MECA_1,
+            color2: COLOR_MECA_2,
+            color3: COLOR_MECA_3,
+            text: "prise d'origine axe [MOTOR] (sens [DIR] jusqu'à [LIMIT], codeur [ENCODER])",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              DIR: { type: Scratch.ArgumentType.STRING, menu: "directionMenu", defaultValue: "LEFT" },
+              LIMIT: { type: Scratch.ArgumentType.STRING, menu: "inputMenu", defaultValue: "E2" },
+              ENCODER: { type: Scratch.ArgumentType.STRING, menu: "inputMenu", defaultValue: "E1" },
+            },
+          },
+          {
+            opcode: "moveAxisToPulsePosition",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_MECA_1,
+            color2: COLOR_MECA_2,
+            color3: COLOR_MECA_3,
+            text: "amener axe [MOTOR] (codeur [ENCODER]) à la position absolue [TARGET] impulsions",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              ENCODER: { type: Scratch.ArgumentType.STRING, menu: "inputMenu", defaultValue: "E1" },
+              TARGET: { type: Scratch.ArgumentType.NUMBER, defaultValue: 10 },
+            },
+          },
+          {
+            opcode: "getAxisPulsePosition",
+            blockType: Scratch.BlockType.REPORTER,
+            color1: COLOR_MECA_1,
+            color2: COLOR_MECA_2,
+            color3: COLOR_MECA_3,
+            text: "position absolue de l'axe [MOTOR] (en impulsions)",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
             },
           },
           "---",
@@ -711,6 +752,15 @@
               const current = Boolean(this.digitalByte & (1 << i));
               if (current && !this.prevInputs[key]) {
                 this.pulseCounts[key] = (this.pulseCounts[key] || 0) + 1;
+                const mappedMotor = this.encoderMap[key];
+                if (mappedMotor !== undefined) {
+                  const dir = this.motors[mappedMotor];
+                  if (dir === MOTOR_LEFT) {
+                    this.axisPositions[mappedMotor] -= 1;
+                  } else {
+                    this.axisPositions[mappedMotor] += 1;
+                  }
+                }
               }
               this.prevInputs[key] = current;
               this.inputs[key] = current;
@@ -936,6 +986,44 @@
     resetPulseCount(args) {
       const key = this._normalizeInputName(args.INPUT);
       this.pulseCounts[key] = 0;
+    }
+
+    async homeAxisLLWin(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const dir = this._parseDirection(args.DIR);
+      const limitKey = this._normalizeInputName(args.LIMIT);
+      const encKey = this._normalizeInputName(args.ENCODER);
+
+      this.encoderMap[encKey] = idx;
+      const start = performance.now();
+      this.motors[idx] = dir;
+      while (!this.inputs[limitKey] && performance.now() - start < 10000) {
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      this.motors[idx] = MOTOR_STOP;
+      this.axisPositions[idx] = 0;
+      this.pulseCounts[encKey] = 0;
+    }
+
+    async moveAxisToPulsePosition(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const encKey = this._normalizeInputName(args.ENCODER);
+      const target = Math.round(Number(args.TARGET) || 0);
+
+      this.encoderMap[encKey] = idx;
+      const start = performance.now();
+      while (performance.now() - start < 15000) {
+        const err = target - (this.axisPositions[idx] || 0);
+        if (err === 0) break;
+        this.motors[idx] = err > 0 ? MOTOR_RIGHT : MOTOR_LEFT;
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      this.motors[idx] = MOTOR_STOP;
+    }
+
+    getAxisPulsePosition(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      return this.axisPositions[idx] || 0;
     }
 
     // --- Sous-groupe 2 : Régulation & Serial Plotter ---
