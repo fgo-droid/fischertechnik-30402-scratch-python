@@ -16,6 +16,8 @@
 | [`exemples/02_barriere_automatique.py`](./exemples/02_barriere_automatique.py) | Projet Python Niv. 2 : Barrière de parking automatisée avec fins de course et sécurité optique. |
 | [`exemples/03_espion_protocole_binaire.py`](./exemples/03_espion_protocole_binaire.py) | Outil pédagogique : Visualiseur temps réel des octets binaires échangés sur le câble RS-232. |
 | [`exemples/04_tableau_de_bord_ihm.py`](./exemples/04_tableau_de_bord_ihm.py) | **Fenêtre graphique IHM en Python (Tkinter)** : poste de contrôle complet (`M1..M4`, voyants `E1..E8`, jauges `EX`/`EY` et espion binaire). |
+| [`exemples/05_distributeur_automatique.py`](./exemples/05_distributeur_automatique.py) | **Projet Classique : Distributeur Automatique à Monnayeur** (détection de pièce, contrôle de stock `EX` et tiroir pousseur aller-retour). |
+| [`docs/CATALOGUE_PROJETS_30402.md`](./docs/CATALOGUE_PROJETS_30402.md) | **Répertoire de 8 Projets Calibrés pour le `30 402`** (avec plans de câblage complets des E/S et astuces d'ingénierie). |
 | [`docs/FICHE_MEMO_ATELIER.md`](./docs/FICHE_MEMO_ATELIER.md) | **Fiche Mémo Recto-Verso CoderDojo** (et sa version prête à imprimer [`docs/fiche_memo_imprimable.html`](./docs/fiche_memo_imprimable.html)). |
 
 ---
