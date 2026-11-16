@@ -11,9 +11,12 @@
 | [`ft30402_turbowarp.js`](./ft30402_turbowarp.js) | **Extension Scratch / TurboWarp** autonome (utilise l'API *Web Serial* du navigateur, zéro installation). |
 | [`ft30402.py`](./ft30402.py) | **Bibliothèque Python** avec thread d'arrière-plan intégré et commandes en français pour **Thonny**. |
 | [`exemple_thonny.py`](./exemple_thonny.py) | Script de démarrage rapide pour Thonny (commutateur télérupteur `E1` $\rightarrow$ LED en `M2`). |
+| [`exemples/tableau_de_bord_30402.sb3`](./exemples/tableau_de_bord_30402.sb3) | **Projet TurboWarp `.sb3` clé en main** avec tableau de bord graphique IHM, voyant `E1` et jauges temps réel. |
 | [`exemples/01_telerupteur_led.py`](./exemples/01_telerupteur_led.py) | Projet Python Niv. 1 : Commutateur d'éclairage (Télérupteur avec anti-rebond). |
 | [`exemples/02_barriere_automatique.py`](./exemples/02_barriere_automatique.py) | Projet Python Niv. 2 : Barrière de parking automatisée avec fins de course et sécurité optique. |
 | [`exemples/03_espion_protocole_binaire.py`](./exemples/03_espion_protocole_binaire.py) | Outil pédagogique : Visualiseur temps réel des octets binaires échangés sur le câble RS-232. |
+| [`exemples/04_tableau_de_bord_ihm.py`](./exemples/04_tableau_de_bord_ihm.py) | **Fenêtre graphique IHM en Python (Tkinter)** : poste de contrôle complet (`M1..M4`, voyants `E1..E8`, jauges `EX`/`EY` et espion binaire). |
+| [`docs/FICHE_MEMO_ATELIER.md`](./docs/FICHE_MEMO_ATELIER.md) | **Fiche Mémo Recto-Verso CoderDojo** (et sa version prête à imprimer [`docs/fiche_memo_imprimable.html`](./docs/fiche_memo_imprimable.html)). |
 
 ---
 
@@ -232,13 +235,18 @@ while True:
 
 ---
 
-## 🎓 6. Pistes Pédagogiques pour un Atelier CoderDojo
+## 🎓 6. Ressources & Pistes Pédagogiques pour un Atelier CoderDojo
 
-1. **Démystifier l'électronique grâce au boîtier transparent :**
+1. **Imprimer la Fiche Mémo A4 Recto-Verso ([`docs/fiche_memo_imprimable.html`](./docs/fiche_memo_imprimable.html)) :**
+   * Ouvrez ce fichier dans votre navigateur et appuyez sur `Ctrl+P` : vous obtenez une fiche A4 Recto-Verso aux couleurs fischertechnik à plastifier et poser sur les tables de l'atelier (avec le schéma visuel du bornier, les blocs TurboWarp, les fonctions Python et les 4 défis).
+2. **Tester et piloter immédiatement avec les Tableaux de Bord IHM (Jumeaux Numériques) :**
+   * **Sous TurboWarp :** Ouvrez directement le projet [`exemples/tableau_de_bord_30402.sb3`](./exemples/tableau_de_bord_30402.sb3) dans [editor.turbowarp.org](https://editor.turbowarp.org/).
+   * **Sous Python (Thonny) :** Lancez [`exemples/04_tableau_de_bord_ihm.py`](./exemples/04_tableau_de_bord_ihm.py) pour ouvrir une fenêtre graphique industrielle complète (boutons `M1..M4`, 8 voyants lumineux `E1..E8`, jauges `EX`/`EY` et espion binaire).
+3. **Démystifier l'électronique grâce au boîtier transparent :**
    * Avant même d'allumer le PC, faites observer les puces à travers le plexiglas : repérer le processeur `Intel 80C32`, la mémoire `EPROM` avec sa fenêtre vitrée d'effacement aux UV, et suivre visuellement les pistes du circuit imprimé depuis `E1..E8` jusqu'au registre à décalage.
-2. **Comprendre le binaire avec l'« Espion Protocole » ([`exemples/03_espion_protocole_binaire.py`](./exemples/03_espion_protocole_binaire.py)) :**
+4. **Comprendre le binaire avec l'« Espion Protocole » ([`exemples/03_espion_protocole_binaire.py`](./exemples/03_espion_protocole_binaire.py)) :**
    * Lancez ce script dans Thonny (ou affichez le bloc `(octet des entrées E8..E1 (en binaire))` dans TurboWarp) : quand les jeunes appuient sur `E1`, `E2`, `E4`, ils voient en direct l'octet passer de `00000000` à `00001011` ! C'est le meilleur moyen visuel de comprendre ce qu'est un bit, un octet et une puissance de 2.
-3. **Progression en 4 défis d'atelier (1h30) :**
+5. **Progression en 4 défis d'atelier (1h30) :**
    * 🟢 **Défi 1 (15 min) :** Allumer une LED sur `M2` quand on appuie sur `E1` (découverte de la polarité d'une LED).
    * 🟡 **Défi 2 (20 min) :** Transformer le bouton poussoir en **télérupteur** (un appui allume, le suivant éteint $\rightarrow$ découverte de la notion de variable d'état et de rebond mécanique).
    * 🟠 **Défi 3 (25 min) :** Construire un **lampadaire intelligent** qui s'allume tout seul quand on cache la photorésistance branchée sur `EX` (découverte d'un capteur analogique et d'un seuil `>`).

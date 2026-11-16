@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Fiche Mémo Atelier CoderDojo — fischertechnik 30 402</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+      color: #1f2937;
+      margin: 0;
+      padding: 12px;
+      background: #e5e7eb;
+    }
+    .page {
+      width: 210mm;
+      min-height: 275mm;
+      margin: 0 auto 16px auto;
+      background: white;
+      padding: 12mm;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      page-break-after: always;
+    }
+    .header {
+      background: #005596;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border-left: 10px solid #E30613;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .header h1 { margin: 0; font-size: 20px; }
+    .header span { font-size: 13px; opacity: 0.9; font-weight: bold; }
+    h2 {
+      color: #005596;
+      border-bottom: 2px solid #E30613;
+      padding-bottom: 4px;
+      margin: 12px 0 8px 0;
+      font-size: 16px;
+    }
+    .terminal-diagram {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 3px;
+      background: #374151;
+      padding: 8px;
+      border-radius: 6px;
+      color: white;
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .term-col {
+      background: #4b5563;
+      padding: 4px 2px;
+      border-radius: 4px;
+    }
+    .term-col.pwr { background: #7f1d1d; }
+    .term-col.in { background: #065f46; }
+    .term-col.ana { background: #92400e; }
+    .term-col.out { background: #1e3a8a; }
+    .hole {
+      width: 12px;
+      height: 12px;
+      background: #111827;
+      border: 2px solid #d1d5db;
+      border-radius: 50%;
+      margin: 4px auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin-bottom: 8px;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    th { background: #f3f4f6; color: #111827; }
+    .scratch-block {
+      display: inline-block;
+      background: #E30613;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 12px;
+      margin: 2px 0;
+    }
+    .scratch-hat { border-radius: 14px 14px 6px 6px; background: #d97706; }
+    .scratch-bool { border-radius: 14px; background: #059669; }
+    pre {
+      background: #111827;
+      color: #f9fafb;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 6px 0;
+    }
+    .alert {
+      background: #fef2f2;
+      border-left: 5px solid #E30613;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      border-radius: 4px;
+      margin: 8px 0;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .card {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #f9fafb;
+      font-size: 12.5px;
+    }
+    .card h3 { margin: 0 0 4px 0; font-size: 13.5px; color: #E30613; }
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; margin: 0; width: 100%; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="no-print" style="text-align:center; margin-bottom:12px;">
+    <button onclick="window.print()" style="background:#005596;color:white;border:none;padding:10px 20px;font-size:15px;border-radius:6px;cursor:pointer;font-weight:bold;">
+      🖨️ Imprimer cette Fiche Mémo (A4 Recto-Verso)
+    </button>
+  </div>
+
+  <!-- PAGE 1 : RECTO -->
+  <div class="page">
+    <div class="header">
+      <h1>🧱 fischertechnik Intelligent Interface (30 402)</h1>
+      <span>FICHE MÉMO CODERDOJO — RECTO (1/2)</span>
+    </div>
+
+    <h2>1. Repérage du Bornier (Chaque composant se branche verticalement ↕)</h2>
+    <div class="terminal-diagram">
+      <div class="term-col pwr">9V=<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col pwr">⊥ 🔴<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E1<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E2<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col ana">EX<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col ana">EY<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E3<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E4<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E5<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E6<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E7<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col in">E8<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col out">M1<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col out">M2<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col out">M3<div class="hole"></div><div class="hole"></div></div>
+      <div class="term-col out">M4<div class="hole"></div><div class="hole"></div></div>
+    </div>
+
+    <table>
+      <tr>
+        <th>Bornes</th>
+        <th>Type</th>
+        <th>Comment les utiliser ?</th>
+      </tr>
+      <tr>
+        <td><b>E1 à E8</b></td>
+        <td>8 Entrées Digitales (0 ou 1)</td>
+        <td>Brancher un bouton-poussoir, contact magnétique Reed ou phototransistor entre le trou du haut et le trou du bas.</td>
+      </tr>
+      <tr>
+        <td><b>EX et EY</b></td>
+        <td>2 Entrées Analogiques (0 à 1000)</td>
+        <td>Brancher une photorésistance (lumière), une CTN (température) ou un potentiomètre (0 à 5 kΩ) entre haut et bas.</td>
+      </tr>
+      <tr>
+        <td><b>M1 à M4</b></td>
+        <td>4 Sorties Moteurs / Lampes (9V)</td>
+        <td>Brancher un moteur, une ampoule, une LED ou une électrovanne entre le trou du haut et le trou du bas.</td>
+      </tr>
+    </table>
+
+    <div class="alert">
+      <b>⚠️ 3 Précautions importantes :</b><br>
+      1. <b>Alimentation 9V :</b> Prise ronde avec le <b>+ au centre</b> (la LED rouge <b>⊥</b> doit s'allumer). Ne jamais brancher la prise ronde et les bornes 9V en même temps.<br>
+      2. <b>Sens des LEDs :</b> Une LED a un sens (+ et -). Si elle ne s'allume pas sur M1..M4, inverse ses 2 fiches (haut ↔ bas) !<br>
+      3. <b>Port COM unique :</b> Ferme toujours l'onglet TurboWarp avant d'utiliser Thonny (et inversement).
+    </div>
+
+    <h2>2. Mode Scratch / TurboWarp (Programmation par Blocs)</h2>
+    <p style="font-size:12.5px; margin:4px 0 8px 0;">
+      Dans <b>editor.turbowarp.org</b> (Chrome/Edge) : <i>Ajouter une extension → Extension personnalisée → Fichier <code>ft30402_turbowarp.js</code></i> (cocher <b>« Exécuter sans bac à sable »</b>).
+    </p>
+
+    <table>
+      <tr>
+        <th>Bloc TurboWarp</th>
+        <th>Effet</th>
+      </tr>
+      <tr>
+        <td><span class="scratch-block">connecter l'interface 30 402</span></td>
+        <td>Ouvre la fenêtre pour choisir le câble USB-Série (ex: <code>COM20</code>).</td>
+      </tr>
+      <tr>
+        <td><span class="scratch-block">moteur [M1 ▼] tourner vers [la droite ▼]</span></td>
+        <td>Fait tourner le moteur en continu (ou <code>pendant (2) s</code>).</td>
+      </tr>
+      <tr>
+        <td><span class="scratch-block">sortie [M2 ▼] (lampe / vanne) sur [MARCHE ▼]</span></td>
+        <td>Allume (<code>MARCHE</code>) ou éteint (<code>ARRÊT</code>) une lampe, LED ou électrovanne.</td>
+      </tr>
+      <tr>
+        <td><span class="scratch-block scratch-hat">quand l'entrée [E1 ▼] est [pressée ▼]</span></td>
+        <td>Déclenche immédiatement un script dès que le capteur E1 est touché.</td>
+      </tr>
+      <tr>
+        <td><span class="scratch-block scratch-bool">&lt;l'entrée [E1 ▼] est pressée ?&gt;</span></td>
+        <td>Renvoie <b>Vrai</b> si le capteur est activé (à glisser dans un bloc <code>si ... alors</code>).</td>
+      </tr>
+      <tr>
+        <td><span class="scratch-block scratch-bool">(valeur analogique [EX ▼])</span></td>
+        <td>Renvoie un nombre entre <b>0 et 1000</b> (coche la case pour voir la jauge à l'écran !).</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- PAGE 2 : VERSO -->
+  <div class="page">
+    <div class="header">
+      <h1>🐍 Programmer le 30 402 en Python (Thonny) & Défis</h1>
+      <span>FICHE MÉMO CODERDOJO — VERSO (2/2)</span>
+    </div>
+
+    <h2>1. Les Commandes Python dans Thonny</h2>
+    <pre>from ft30402 import Interface30402
+import time
+
+# 1. Connexion à l'interface (remplacer COM20 si besoin, ou laisser vide pour auto-détection)
+ft = Interface30402("COM20")
+
+# 2. Commander les 4 sorties M1 à M4
+ft.moteur(1, "droite")             # Démarre M1 ("droite", "gauche", "frein", "arret")
+ft.moteur(1, "gauche", duree=2.0)  # Tourne 2 secondes à gauche puis s'arrête
+ft.lampe(2, True)                  # Allume la LED/lampe en M2 (False pour éteindre)
+ft.arreter()                       # Coupe tous les moteurs (M1 à M4)
+
+# 3. Lire les 8 entrées E1 à E8 et les 2 entrées analogiques EX, EY
+if ft.entree(1):                   # Renvoie True si E1 est enfoncé, False sinon
+    print("Capteur E1 touché !")
+
+ft.attendre_entree(1, True)        # Met le programme en pause jusqu'à l'appui sur E1
+valeur = ft.analog("EX")           # Renvoie la mesure entre 0 et 1000</pre>
+
+    <h2>2. Exemple Complet : Le Télérupteur (Bouton E1 → LED en M2)</h2>
+    <pre>from ft30402 import Interface30402
+import time
+
+ft = Interface30402("COM20")
+allume = False
+
+while True:
+    ft.attendre_entree(1, True)    # Attend qu'on appuie sur E1
+    allume = not allume            # Inverse l'état (True <-> False)
+    ft.lampe(2, allume)            # Met à jour la LED sur M2
+    ft.attendre_entree(1, False)   # Attend qu'on relâche E1
+    time.sleep(0.05)</pre>
+
+    <h2>3. Les 4 Défis de l'Atelier CoderDojo</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>🟢 Défi 1 : Le Phare (15 min)</h3>
+        Branche un bouton sur <b>E1</b> et une LED sur <b>M2</b>. Fais en sorte que la LED s'allume uniquement pendant qu'on appuie sur le bouton E1.
+      </div>
+      <div class="card">
+        <h3>🟡 Défi 2 : Le Télérupteur (20 min)</h3>
+        Un premier clic sur <b>E1</b> allume la LED en <b>M2</b> ; elle reste allumée quand on lâche le bouton. Un second clic sur <b>E1</b> l'éteint !
+      </div>
+      <div class="card">
+        <h3>🟠 Défi 3 : Lampadaire Solaire (25 min)</h3>
+        Branche une photorésistance sur <b>EX</b>. Observe sa valeur entre 0 et 1000 et allume automatiquement <b>M2</b> dès qu'il fait sombre (quand tu caches le capteur avec ta main).
+      </div>
+      <div class="card">
+        <h3>🔴 Défi 4 : Tableau de Bord IHM (30 min)</h3>
+        Dans Scratch (ou en lançant <code>04_tableau_de_bord_ihm.py</code>), crée un écran de contrôle qui affiche l'état des boutons en direct et arrête le moteur <b>M1</b> dès qu'il touche le fin de course <b>E1</b> !
+      </div>
+    </div>
+
+    <h2>4. Comprendre les Octets : Ce qui circule dans le câble RS-232</h2>
+    <p style="font-size:12px; margin:4px 0;">
+      Lance <code>exemples/03_espion_protocole_binaire.py</code> dans Thonny ou coche le bloc <b>(octet des entrées E8..E1 (en binaire))</b> dans Scratch :
+      20 fois par seconde, le PC envoie 2 octets et l'interface répond avec 1 octet où <b>chaque bit (0 ou 1) représente un des 8 interrupteurs E8..E1</b> !
+    </p>
+  </div>
+
+</body>
+</html>
