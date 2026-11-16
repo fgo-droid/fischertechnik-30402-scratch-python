@@ -1,0 +1,15 @@
+# Dossiers Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Dossier photos local
+Photos-1-001/
+
+# IDE & OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
