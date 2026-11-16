@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GRAFCET Studio 30 402 — Automate Séquentiel fischertechnik</title>
+  <style>
+    :root {
+      --bg-app: #f1f5f9;
+      --bg-panel: #ffffff;
+      --primary: #2E6B9E;
+      --primary-dark: #1E496D;
+      --meca-green: #16a34a;
+      --meca-green-bg: #dcfce7;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* --- Barre supérieure (Header & Commandes Automate) --- */
+    header {
+      background: #0f172a;
+      color: white;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 3px solid var(--primary);
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .badge-status {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: #334155;
+      color: #cbd5e1;
+    }
+    .badge-status.online {
+      background: #14532d;
+      color: #4ade80;
+      border: 1px solid #22c55e;
+    }
+    .badge-status.running {
+      background: #1e3a8a;
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button, select {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 13px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:hover { filter: brightness(1.06); }
+    button:active { transform: translateY(1px); }
+
+    .btn-serial { background: var(--primary); color: white; }
+    .btn-serial.connected { background: #0f766e; }
+    .btn-run { background: #16a34a; color: white; }
+    .btn-run.active { box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.45); }
+    .btn-stop { background: #dc2626; color: white; }
+    .btn-init { background: #475569; color: white; }
+    .btn-step { background: #d97706; color: white; }
+    .btn-secondary { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+
+    select.preset-select {
+      background: #1e293b;
+      color: white;
+      border-color: #475569;
+      padding: 7px 10px;
+    }
+
+    /* --- Layout Principal (2 Colonnes : Éditeur GRAFCET + Panneau E/S Temps Réel) --- */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 370px;
+      overflow: hidden;
+    }
+
+    /* --- Zone Diagramme GRAFCET --- */
+    .grafcet-workspace {
+      padding: 20px 28px 60px 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .workspace-toolbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      background: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .grafcet-chain {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-left: 24px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    /* Bloc Étape + Actions */
+    .step-row {
+      display: flex;
+      align-items: stretch;
+      width: 100%;
+      position: relative;
+    }
+
+    /* Carré d'étape CEI 61131-3 */
+    .step-node {
+      width: 82px;
+      min-height: 76px;
+      background: white;
+      border: 2.5px solid #334155;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    /* Double carré pour l'étape initiale 0 */
+    .step-node.initial::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border: 1.5px solid #334155;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .step-node.active {
+      background: var(--meca-green-bg);
+      border-color: var(--meca-green);
+      box-shadow: 0 0 16px rgba(22, 163, 74, 0.35);
+    }
+    .step-node.active.initial::after {
+      border-color: var(--meca-green);
+    }
+
+    .step-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .step-token {
+      margin-top: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 99px;
+      background: #e2e8f0;
+      color: #64748b;
+    }
+    .step-node.active .step-token {
+      background: var(--meca-green);
+      color: white;
+    }
+
+    /* Connecteur horizontal Étape -> Action */
+    .action-connector {
+      width: 24px;
+      height: 2.5px;
+      background: #334155;
+      align-self: center;
+      flex-shrink: 0;
+    }
+    .step-row.active .action-connector {
+      background: var(--meca-green);
+    }
+
+    /* Rectangle des Actions associées à l'étape */
+    .action-box {
+      flex: 1;
+      background: white;
+      border: 2px solid #cbd5e1;
+      border-left: 5px solid #475569;
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .step-row.active .action-box {
+      border-color: #86efac;
+      border-left-color: var(--meca-green);
+      background: #f0fdf4;
+    }
+
+    .action-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-title-input {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: 100%;
+    }
+    .step-title-input:focus {
+      border-color: var(--primary);
+      background: white;
+      outline: none;
+    }
+
+    .motors-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .motor-action-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: #f8fafc;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+    .motor-action-item label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+    }
+    .motor-action-item select {
+      padding: 4px 6px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      color: #0f172a;
+    }
+    .motor-action-item select.active-cmd {
+      background: #dbeafe;
+      border-color: #2563eb;
+      color: #1e40af;
+    }
+
+    /* Liaison verticale + Barre de Transition CEI 61131-3 */
+    .transition-block {
+      display: flex;
+      align-items: center;
+      padding-left: 40px; /* Centré sous le carré de 82px */
+      min-height: 58px;
+      position: relative;
+    }
+    .vertical-line {
+      width: 2.5px;
+      height: 58px;
+      background: #334155;
+      position: relative;
+    }
+    .transition-bar {
+      width: 30px;
+      height: 5px;
+      background: #0f172a;
+      position: absolute;
+      left: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: 2px;
+    }
+    .transition-block.ready .transition-bar {
+      background: var(--meca-green);
+      box-shadow: 0 0 8px rgba(22, 163, 74, 0.6);
+    }
+
+    .transition-cond-box {
+      margin-left: 24px;
+      background: #f8fafc;
+      border: 1px dashed #94a3b8;
+      border-radius: 6px;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+    }
+    .transition-block.ready .transition-cond-box {
+      background: #dcfce7;
+      border-style: solid;
+      border-color: #22c55e;
+    }
+    .transition-cond-box select, .transition-cond-box input {
+      padding: 3px 6px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: white;
+    }
+    .cond-lamp {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #cbd5e1;
+      display: inline-block;
+    }
+    .transition-block.ready .cond-lamp {
+      background: #16a34a;
+    }
+
+    /* Boucle de retour vers l'étape 0 */
+    .loopback-footer {
+      margin-left: 24px;
+      padding: 8px 14px;
+      background: #e2e8f0;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* --- Panneau Latéral Droit (Supervision E/S & Simulateur) --- */
+    aside {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      padding: 14px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f8fafc;
+    }
+    .panel-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .input-pill {
+      background: white;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 4px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.1s;
+    }
+    .input-pill:hover { border-color: #64748b; }
+    .input-pill.active {
+      background: #16a34a;
+      border-color: #14532d;
+      color: white;
+      font-weight: bold;
+    }
+    .input-pill .e-name { font-size: 12px; font-weight: 700; display: block; }
+    .input-pill .e-val { font-size: 11px; opacity: 0.85; font-family: Consolas, monospace; }
+
+    .analog-row {
+      margin-bottom: 8px;
+    }
+    .analog-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+    .analog-row input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+
+    .outputs-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .output-badge {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .output-state {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: Consolas, monospace;
+      font-size: 11px;
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .output-state.right { background: #dcfce7; color: #166534; }
+    .output-state.left  { background: #dbeafe; color: #1e40af; }
+    .output-state.brake { background: #fef3c7; color: #92400e; }
+
+    .spy-box {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: Consolas, monospace;
+      font-size: 11.5px;
+      padding: 10px;
+      border-radius: 6px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRE DE CONTRÔLE SUPÉRIEURE -->
+  <header>
+    <div class="brand">
+      <span style="font-size:22px;">📊</span>
+      <div>
+        <h1>GRAFCET Studio 30 402</h1>
+        <div style="font-size:11px; color:#94a3b8;">Automate Séquentiel CEI 61131-3 (SFC) — fischertechnik Intelligent Interface</div>
+      </div>
+      <span id="serialStatusBadge" class="badge-status">🔌 Mode Simulation (Hors-ligne)</span>
+      <span id="plcStatusBadge" class="badge-status">⏹️ AUTOMATE EN PAUSE</span>
+    </div>
+
+    <div class="toolbar">
+      <button id="btnConnect" class="btn-serial" onclick="toggleSerialConnection()">
+        🔌 Connecter 30 402 (COM)
+      </button>
+      <button id="btnRun" class="btn-run" onclick="startPlc()">
+        ▶️ START (RUN)
+      </button>
+      <button id="btnStop" class="btn-stop" onclick="stopPlc()">
+        ⏹️ STOP
+      </button>
+      <button class="btn-init" onclick="initPlc()" title="Revenir à l'étape initiale 0">
+        🔄 INIT (Étape 0)
+      </button>
+      <button class="btn-step" onclick="forceNextStep()" title="Forcer le franchissement vers l'étape suivante">
+        ⏭️ Forcer Pas
+      </button>
+    </div>
+  </header>
+
+  <!-- ESPACE DE TRAVAIL PRINCIPAL -->
+  <main>
+    <!-- Zone Gauche : Diagramme GRAFCET Interactif -->
+    <section class="grafcet-workspace">
+      <div class="workspace-toolbar">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <label for="presetSelect" style="font-size:13px; font-weight:700;">📂 Modèle GRAFCET :</label>
+          <select id="presetSelect" class="preset-select" onchange="loadPreset(this.value)">
+            <option value="vending">🪙 1. Distributeur Automatique à Monnayeur (Mouchoirs)</option>
+            <option value="barrier">🚧 2. Barrière de Parking Automatique (Sécurité EX)</option>
+            <option value="toggle">💡 3. Télérupteur (Bouton E1 → LED en M2)</option>
+            <option value="press">💨 4. Presse Électropneumatique Bimanuelle (E1 ET E2)</option>
+            <option value="empty">📄 5. Grafcet Vierge (2 étapes)</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:6px;">
+          <button class="btn-secondary" onclick="addStep()">➕ Ajouter une Étape</button>
+          <button class="btn-secondary" onclick="exportGrafcetJson()">💾 Exporter</button>
+          <button class="btn-secondary" onclick="document.getElementById('fileImport').click()">📂 Importer</button>
+          <input type="file" id="fileImport" accept=".json" style="display:none" onchange="importGrafcetJson(event)">
+        </div>
+      </div>
+
+      <!-- Chaîne graphique des étapes et transitions -->
+      <div id="grafcetContainer" class="grafcet-chain"></div>
+    </section>
+
+    <!-- Zone Droite : Supervision Temps Réel & Simulateur E/S -->
+    <aside>
+      <div class="panel-card">
+        <h3>
+          <span>🔘 Entrées Digitales (E1 à E8)</span>
+          <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">(Cliquez pour simuler)</span>
+        </h3>
+        <div id="inputsGrid" class="inputs-grid"></div>
+      </div>
+
+      <div class="panel-card">
+        <h3>🌡️ Entrées Analogiques (EX & EY)</h3>
+        <div class="analog-row">
+          <div class="analog-header">
+            <span>Capteur EX (0–5 kΩ) :</span>
+            <span id="exValueLabel">500 / 1000</span>
+          </div>
+          <input type="range" id="exSlider" min="0" max="1000" value="500" oninput="onSliderInput('EX', this.value)">
+        </div>
+        <div class="analog-row" style="margin-bottom:0;">
+          <div class="analog-header">
+            <span>Capteur EY (0–5 kΩ) :</span>
+            <span id="eyValueLabel">500 / 1000</span>
+          </div>
+          <input type="range" id="eySlider" min="0" max="1000" value="500" oninput="onSliderInput('EY', this.value)">
+        </div>
+      </div>
+
+      <div class="panel-card">
+        <h3>⚙️ État des 4 Sorties (M1 à M4)</h3>
+        <div id="outputsList" class="outputs-list"></div>
+        <button class="btn-stop" style="width:100%; margin-top:8px;" onclick="emergencyStop()">
+          🚨 COUPER TOUS LES MOTEURS
+        </button>
+      </div>
+
+      <div class="panel-card">
+        <h3>⏱️ État de l'Automate Séquentiel</h3>
+        <div style="font-size:12.5px; line-height:1.6;">
+          <div>Étape Active : <b id="activeStepLabel" style="color:var(--meca-green); font-size:14px;">Étape 0</b></div>
+          <div>Temps dans l'étape (<b>T</b>) : <b id="stepTimerLabel">0.0 s</b></div>
+        </div>
+      </div>
+
+      <div class="spy-box" id="spyBox">
+        📤 TX : [0xC5, 0b00000000] (M4..M1)<br>
+        📥 RX : [0b00000000]       (E8..E1)
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. ÉTAT MATÉRIEL (30 402 Web Serial + Mode Simulation)
+    // =========================================================================
+    const CMD_ONLY_DIGITAL = 0xC1;
+    const CMD_READ_EX = 0xC5;
+    const CMD_READ_EY = 0xC9;
+
+    const MOTOR_STOP = 0;
+    const MOTOR_LEFT = 1;
+    const MOTOR_RIGHT = 2;
+    const MOTOR_BRAKE = 3;
+
+    let port = null;
+    let reader = null;
+    let writer = null;
+    let isSerialConnected = false;
+    let isPolling = false;
+    let toggleAnalog = false;
+
+    // Entrées matérielles (du 30 402) + Entrées simulées à la souris (OU logique)
+    const hwInputs = { E1:false, E2:false, E3:false, E4:false, E5:false, E6:false, E7:false, E8:false };
+    const simInputs = { E1:false, E2:false, E3:false, E4:false, E5:false, E6:false, E7:false, E8:false };
+    const analogValues = { EX: 500, EY: 500 };
+    const motors = [0, 0, 0, 0]; // M1..M4
+    let lastDigitalByte = 0;
+
+    function getEffectiveInput(name) {
+      return Boolean(hwInputs[name] || simInputs[name]);
+    }
+
+    // =========================================================================
+    // 2. MOTEUR D'EXÉCUTION GRAFCET (CEI 61131-3)
+    // =========================================================================
+    let plcRunning = false;
+    let activeStepIndex = 0;
+    let stepStartTime = performance.now();
+    let grafcetSteps = [];
+
+    // Modèles GRAFCET préconfigurés
+    const PRESETS = {
+      vending: [
+        {
+          title: "Attente Pièce (Repos)",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Crédit Validé (Voyant M2 ON) — Attente Bouton Client E3",
+          actions: [0, 2, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Éjection du Paquet (Poussoir M1 Droite jusqu'à E5)",
+          actions: [2, 2, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E5", threshold: 500, delay: 2.0 }
+        },
+        {
+          title: "Pause fin de course avant (0.5 s)",
+          actions: [0, 2, 0, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 0.5 }
+        },
+        {
+          title: "Retour du Poussoir au Repos (M1 Gauche jusqu'à E4)",
+          actions: [1, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E4", threshold: 500, delay: 2.0 }
+        }
+      ],
+      barrier: [
+        {
+          title: "Barrière Fermée — Attente Demande d'Accès (E1)",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Montée Barrière (M1 Droite + Feu M2) jusqu'au fin de course haut E2",
+          actions: [2, 2, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E2", threshold: 500, delay: 2.0 }
+        },
+        {
+          title: "Maintien Ouverte pendant 3 secondes",
+          actions: [0, 2, 0, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 3.0 }
+        },
+        {
+          title: "Vérification Sécurité Optique (Pas d'obstacle : EX < 600)",
+          actions: [0, 2, 0, 0],
+          transition: { type: "ANALOG_LT", input: "EX", threshold: 600, delay: 1.0 }
+        },
+        {
+          title: "Descente Barrière (M1 Gauche) jusqu'au fin de course bas E3",
+          actions: [1, 2, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E3", threshold: 500, delay: 2.0 }
+        }
+      ],
+      toggle: [
+        {
+          title: "LED Éteinte — Attente Appui sur E1",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "LED Allumée (M2 ON) — Attente Relâchement de E1",
+          actions: [0, 2, 0, 0],
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "LED Maintenue Allumée — Attente 2e Appui sur E1",
+          actions: [0, 2, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Extinction LED — Attente Relâchement de E1",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+        }
+      ],
+      press: [
+        {
+          title: "Repos — Attente Commande Bimanuelle (E1 ET E2 pressés)",
+          actions: [0, 0, 0, 0],
+          transition: { type: "BIMANUAL_E1_E2", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Compresseur M1 + Descente Vérin Presse M2 (pendant 2 s)",
+          actions: [2, 2, 0, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0 }
+        },
+        {
+          title: "Remontée Presse & Soufflette d'Éjection M3 (pendant 1 s)",
+          actions: [2, 0, 2, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Sécurité Anti-Répétition : Relâcher E1",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_LOW", input: "E1", threshold: 500, delay: 1.0 }
+        }
+      ],
+      empty: [
+        {
+          title: "Étape Initiale (Repos)",
+          actions: [0, 0, 0, 0],
+          transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+        },
+        {
+          title: "Étape 1 (Action M1 Droite)",
+          actions: [2, 0, 0, 0],
+          transition: { type: "TIMER", input: "E1", threshold: 500, delay: 2.0 }
+        }
+      ]
+    };
+
+    function evaluateTransition(trans, elapsedSec) {
+      switch (trans.type) {
+        case "INPUT_HIGH":
+          return getEffectiveInput(trans.input);
+        case "INPUT_LOW":
+          return !getEffectiveInput(trans.input);
+        case "BIMANUAL_E1_E2":
+          return getEffectiveInput("E1") && getEffectiveInput("E2");
+        case "ANALOG_GT":
+          return (analogValues[trans.input] || 0) > Number(trans.threshold);
+        case "ANALOG_LT":
+          return (analogValues[trans.input] || 0) < Number(trans.threshold);
+        case "TIMER":
+          return elapsedSec >= Number(trans.delay);
+        case "ALWAYS":
+          return true;
+        default:
+          return false;
+      }
+    }
+
+    function applyCurrentStepOutputs() {
+      if (!plcRunning || grafcetSteps.length === 0) {
+        motors[0] = 0; motors[1] = 0; motors[2] = 0; motors[3] = 0;
+        return;
+      }
+      const step = grafcetSteps[activeStepIndex] || grafcetSteps[0];
+      for (let i = 0; i < 4; i++) {
+        motors[i] = Number(step.actions[i]) || 0;
+      }
+    }
+
+    // Boucle d'évaluation de l'automate GRAFCET (25 Hz / 40 ms)
+    setInterval(() => {
+      const elapsedSec = (performance.now() - stepStartTime) / 1000;
+
+      if (plcRunning && grafcetSteps.length > 0) {
+        const currentStep = grafcetSteps[activeStepIndex];
+        if (currentStep && evaluateTransition(currentStep.transition, elapsedSec)) {
+          // Franchissement de la transition vers l'étape suivante (avec rebouclage à 0)
+          activeStepIndex = (activeStepIndex + 1) % grafcetSteps.length;
+          stepStartTime = performance.now();
+          renderGrafcetDiagram();
+        }
+        applyCurrentStepOutputs();
+      }
+
+      updateSidePanelUI(elapsedSec);
+    }, 40);
+
+    // =========================================================================
+    // 3. COMMANDES START / STOP / INIT / ÉDITION
+    // =========================================================================
+    function startPlc() {
+      plcRunning = true;
+      stepStartTime = performance.now();
+      applyCurrentStepOutputs();
+      updateHeaderBadges();
+      renderGrafcetDiagram();
+    }
+
+    function stopPlc() {
+      plcRunning = false;
+      motors[0] = 0; motors[1] = 0; motors[2] = 0; motors[3] = 0;
+      updateHeaderBadges();
+      renderGrafcetDiagram();
+    }
+
+    function initPlc() {
+      activeStepIndex = 0;
+      stepStartTime = performance.now();
+      applyCurrentStepOutputs();
+      renderGrafcetDiagram();
+    }
+
+    function forceNextStep() {
+      if (grafcetSteps.length === 0) return;
+      activeStepIndex = (activeStepIndex + 1) % grafcetSteps.length;
+      stepStartTime = performance.now();
+      applyCurrentStepOutputs();
+      renderGrafcetDiagram();
+    }
+
+    function jumpToStep(idx) {
+      activeStepIndex = idx;
+      stepStartTime = performance.now();
+      applyCurrentStepOutputs();
+      renderGrafcetDiagram();
+    }
+
+    function emergencyStop() {
+      stopPlc();
+    }
+
+    function loadPreset(name) {
+      stopPlc();
+      const template = PRESETS[name] || PRESETS.vending;
+      grafcetSteps = JSON.parse(JSON.stringify(template));
+      activeStepIndex = 0;
+      stepStartTime = performance.now();
+      renderGrafcetDiagram();
+    }
+
+    function addStep() {
+      grafcetSteps.push({
+        title: `Étape ${grafcetSteps.length}`,
+        actions: [0, 0, 0, 0],
+        transition: { type: "INPUT_HIGH", input: "E1", threshold: 500, delay: 1.0 }
+      });
+      renderGrafcetDiagram();
+    }
+
+    function deleteStep(idx) {
+      if (grafcetSteps.length <= 1) return;
+      grafcetSteps.splice(idx, 1);
+      if (activeStepIndex >= grafcetSteps.length) {
+        activeStepIndex = 0;
+      }
+      renderGrafcetDiagram();
+    }
+
+    function exportGrafcetJson() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(grafcetSteps, null, 2));
+      const a = document.createElement("a");
+      a.setAttribute("href", dataStr);
+      a.setAttribute("download", "programme_grafcet_30402.json");
+      a.click();
+    }
+
+    function importGrafcetJson(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const readerFile = new FileReader();
+      readerFile.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            stopPlc();
+            grafcetSteps = parsed;
+            activeStepIndex = 0;
+            renderGrafcetDiagram();
+          }
+        } catch (err) {
+          alert("Fichier JSON invalide : " + err.message);
+        }
+      };
+      readerFile.readAsText(file);
+    }
+
+    // =========================================================================
+    // 4. RENDU GRAPHIQUE DU DIAGRAMME GRAFCET
+    // =========================================================================
+    function renderGrafcetDiagram() {
+      const container = document.getElementById("grafcetContainer");
+      container.innerHTML = "";
+
+      const elapsedSec = (performance.now() - stepStartTime) / 1000;
+
+      grafcetSteps.forEach((step, idx) => {
+        const isActive = idx === activeStepIndex;
+
+        // 1. Ligne Étape + Action
+        const stepRow = document.createElement("div");
+        stepRow.className = "step-row" + (isActive ? " active" : "");
+
+        // Carré d'étape
+        const stepNode = document.createElement("div");
+        stepNode.className = "step-node" + (idx === 0 ? " initial" : "") + (isActive ? " active" : "");
+        stepNode.title = "Cliquez pour activer cette étape immédiatement";
+        stepNode.onclick = () => jumpToStep(idx);
+        stepNode.innerHTML = `
+          <div class="step-num">${idx}</div>
+          <div class="step-token">${isActive ? "● ACTIF" : "Repos"}</div>
+        `;
+
+        // Connecteur horizontal
+        const connector = document.createElement("div");
+        connector.className = "action-connector";
+
+        // Boîte d'actions associées
+        const actionBox = document.createElement("div");
+        actionBox.className = "action-box";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "action-header";
+
+        const titleInput = document.createElement("input");
+        titleInput.type = "text";
+        titleInput.className = "step-title-input";
+        titleInput.value = step.title;
+        titleInput.onchange = (e) => { step.title = e.target.value; };
+        headerDiv.appendChild(titleInput);
+
+        if (grafcetSteps.length > 1) {
+          const delBtn = document.createElement("button");
+          delBtn.textContent = "🗑️";
+          delBtn.title = "Supprimer cette étape";
+          delBtn.style.cssText = "background:transparent;border:none;padding:2px 6px;cursor:pointer;font-size:14px;";
+          delBtn.onclick = () => deleteStep(idx);
+          headerDiv.appendChild(delBtn);
+        }
+
+        const motorsGrid = document.createElement("div");
+        motorsGrid.className = "motors-grid";
+
+        for (let m = 0; m < 4; m++) {
+          const item = document.createElement("div");
+          item.className = "motor-action-item";
+          const lbl = document.createElement("label");
+          lbl.textContent = `Sortie M${m + 1}`;
+          const sel = document.createElement("select");
+          if (step.actions[m] !== 0) sel.className = "active-cmd";
+          sel.innerHTML = `
+            <option value="0" ${step.actions[m] === 0 ? "selected" : ""}>— Arrêt (0)</option>
+            <option value="2" ${step.actions[m] === 2 ? "selected" : ""}>⏩ Droite / ON</option>
+            <option value="1" ${step.actions[m] === 1 ? "selected" : ""}>⏪ Gauche</option>
+            <option value="3" ${step.actions[m] === 3 ? "selected" : ""}>🛑 Frein</option>
+          `;
+          sel.onchange = (e) => {
+            step.actions[m] = Number(e.target.value);
+            applyCurrentStepOutputs();
+            renderGrafcetDiagram();
+          };
+          item.appendChild(lbl);
+          item.appendChild(sel);
+          motorsGrid.appendChild(item);
+        }
+
+        actionBox.appendChild(headerDiv);
+        actionBox.appendChild(motorsGrid);
+
+        stepRow.appendChild(stepNode);
+        stepRow.appendChild(connector);
+        stepRow.appendChild(actionBox);
+        container.appendChild(stepRow);
+
+        // 2. Barre de Transition sous l'étape
+        const trans = step.transition;
+        const condReady = evaluateTransition(trans, isActive ? elapsedSec : 0);
+
+        const transBlock = document.createElement("div");
+        transBlock.className = "transition-block" + (condReady ? " ready" : "");
+        transBlock.id = `transBlock_${idx}`;
+
+        const vLine = document.createElement("div");
+        vLine.className = "vertical-line";
+        const tBar = document.createElement("div");
+        tBar.className = "transition-bar";
+        vLine.appendChild(tBar);
+
+        const condBox = document.createElement("div");
+        condBox.className = "transition-cond-box";
+
+        const lamp = document.createElement("span");
+        lamp.className = "cond-lamp";
+        lamp.id = `transLamp_${idx}`;
+        condBox.appendChild(lamp);
+
+        // Sélecteur du type de réceptivité
+        const typeSelect = document.createElement("select");
+        typeSelect.innerHTML = `
+          <option value="INPUT_HIGH" ${trans.type === "INPUT_HIGH" ? "selected" : ""}>Entrée pressée (= 1)</option>
+          <option value="INPUT_LOW" ${trans.type === "INPUT_LOW" ? "selected" : ""}>Entrée relâchée (= 0)</option>
+          <option value="BIMANUAL_E1_E2" ${trans.type === "BIMANUAL_E1_E2" ? "selected" : ""}>Bimanuel (E1 ET E2 = 1)</option>
+          <option value="ANALOG_GT" ${trans.type === "ANALOG_GT" ? "selected" : ""}>Analogique &gt; Seuil</option>
+          <option value="ANALOG_LT" ${trans.type === "ANALOG_LT" ? "selected" : ""}>Analogique &lt; Seuil</option>
+          <option value="TIMER" ${trans.type === "TIMER" ? "selected" : ""}>Temporisation T &gt;= (s)</option>
+          <option value="ALWAYS" ${trans.type === "ALWAYS" ? "selected" : ""}>Toujours Vrai (= 1)</option>
+        `;
+        typeSelect.onchange = (e) => {
+          trans.type = e.target.value;
+          if ((trans.type === "ANALOG_GT" || trans.type === "ANALOG_LT") && !["EX", "EY"].includes(trans.input)) {
+            trans.input = "EX";
+          } else if ((trans.type === "INPUT_HIGH" || trans.type === "INPUT_LOW") && !trans.input.startsWith("E")) {
+            trans.input = "E1";
+          }
+          renderGrafcetDiagram();
+        };
+        condBox.appendChild(typeSelect);
+
+        // Paramètre complémentaire selon le type choisi
+        if (trans.type === "INPUT_HIGH" || trans.type === "INPUT_LOW") {
+          const inSel = document.createElement("select");
+          for (let i = 1; i <= 8; i++) {
+            const opt = document.createElement("option");
+            opt.value = `E${i}`;
+            opt.textContent = `E${i}`;
+            if (trans.input === `E${i}`) opt.selected = true;
+            inSel.appendChild(opt);
+          }
+          inSel.onchange = (e) => { trans.input = e.target.value; };
+          condBox.appendChild(inSel);
+        } else if (trans.type === "ANALOG_GT" || trans.type === "ANALOG_LT") {
+          const anaSel = document.createElement("select");
+          ["EX", "EY"].forEach((ch) => {
+            const opt = document.createElement("option");
+            opt.value = ch;
+            opt.textContent = ch;
+            if (trans.input === ch) opt.selected = true;
+            anaSel.appendChild(opt);
+          });
+          anaSel.onchange = (e) => { trans.input = e.target.value; };
+          condBox.appendChild(anaSel);
+
+          const numIn = document.createElement("input");
+          numIn.type = "number";
+          numIn.min = 0; numIn.max = 1000; numIn.step = 10;
+          numIn.style.width = "68px";
+          numIn.value = trans.threshold || 500;
+          numIn.onchange = (e) => { trans.threshold = Number(e.target.value); };
+          condBox.appendChild(numIn);
+        } else if (trans.type === "TIMER") {
+          const secIn = document.createElement("input");
+          secIn.type = "number";
+          secIn.min = 0.1; secIn.max = 60; secIn.step = 0.5;
+          secIn.style.width = "64px";
+          secIn.value = trans.delay || 1.0;
+          secIn.onchange = (e) => { trans.delay = Number(e.target.value); };
+          condBox.appendChild(secIn);
+
+          const unitSpan = document.createElement("span");
+          unitSpan.textContent = "s";
+          condBox.appendChild(unitSpan);
+        }
+
+        transBlock.appendChild(vLine);
+        transBlock.appendChild(condBox);
+        container.appendChild(transBlock);
+      });
+
+      // Pied de rebouclage vers l'Étape 0
+      const footer = document.createElement("div");
+      footer.className = "loopback-footer";
+      footer.innerHTML = "↩️ Retour cyclique à l'<b>Étape Initiale 0</b>";
+      container.appendChild(footer);
+    }
+
+    // =========================================================================
+    // 5. PANNEAU DE SUPERVISION DROIT & SIMULATEUR
+    // =========================================================================
+    function initSidePanelUI() {
+      const grid = document.getElementById("inputsGrid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= 8; i++) {
+        const key = `E${i}`;
+        const pill = document.createElement("div");
+        pill.className = "input-pill";
+        pill.id = `pill_${key}`;
+        pill.onclick = () => {
+          simInputs[key] = !simInputs[key];
+        };
+        pill.innerHTML = `
+          <span class="e-name">${key}</span>
+          <span class="e-val" id="val_${key}">0</span>
+        `;
+        grid.appendChild(pill);
+      }
+
+      const outList = document.getElementById("outputsList");
+      outList.innerHTML = "";
+      for (let m = 1; m <= 4; m++) {
+        const badge = document.createElement("div");
+        badge.className = "output-badge";
+        badge.innerHTML = `
+          <span>M${m}</span>
+          <span class="output-state" id="outState_M${m}">ARRÊT</span>
+        `;
+        outList.appendChild(badge);
+      }
+    }
+
+    function onSliderInput(channel, val) {
+      analogValues[channel] = Number(val);
+    }
+
+    function updateHeaderBadges() {
+      const serialBadge = document.getElementById("serialStatusBadge");
+      const btnConnect = document.getElementById("btnConnect");
+      if (isSerialConnected) {
+        serialBadge.textContent = "✅ 30 402 Connecté (RS-232)";
+        serialBadge.className = "badge-status online";
+        btnConnect.textContent = "🔌 Déconnecter 30 402";
+        btnConnect.className = "btn-serial connected";
+      } else {
+        serialBadge.textContent = "🔌 Mode Simulation (Hors-ligne)";
+        serialBadge.className = "badge-status";
+        btnConnect.textContent = "🔌 Connecter 30 402 (COM)";
+        btnConnect.className = "btn-serial";
+      }
+
+      const plcBadge = document.getElementById("plcStatusBadge");
+      const btnRun = document.getElementById("btnRun");
+      if (plcRunning) {
+        plcBadge.textContent = "▶️ GRAFCET EN RUN";
+        plcBadge.className = "badge-status running";
+        btnRun.className = "btn-run active";
+      } else {
+        plcBadge.textContent = "⏹️ AUTOMATE EN PAUSE";
+        plcBadge.className = "badge-status";
+        btnRun.className = "btn-run";
+      }
+    }
+
+    function updateSidePanelUI(elapsedSec) {
+      // 1. Entrées E1..E8
+      for (let i = 1; i <= 8; i++) {
+        const key = `E${i}`;
+        const active = getEffectiveInput(key);
+        const pill = document.getElementById(`pill_${key}`);
+        const valSpan = document.getElementById(`val_${key}`);
+        if (pill && valSpan) {
+          pill.className = "input-pill" + (active ? " active" : "");
+          valSpan.textContent = active ? "1" : "0";
+        }
+      }
+
+      // 2. Analogiques EX & EY
+      document.getElementById("exValueLabel").textContent = `${analogValues.EX} / 1000`;
+      document.getElementById("eyValueLabel").textContent = `${analogValues.EY} / 1000`;
+      if (isSerialConnected) {
+        document.getElementById("exSlider").value = analogValues.EX;
+        document.getElementById("eySlider").value = analogValues.EY;
+      }
+
+      // 3. Sorties M1..M4
+      const labels = [
+        { txt: "ARRÊT", cls: "output-state" },
+        { txt: "GAUCHE", cls: "output-state left" },
+        { txt: "DROITE/ON", cls: "output-state right" },
+        { txt: "FREIN", cls: "output-state brake" }
+      ];
+      for (let m = 0; m < 4; m++) {
+        const el = document.getElementById(`outState_M${m + 1}`);
+        if (el) {
+          const info = labels[motors[m]] || labels[0];
+          el.textContent = info.txt;
+          el.className = info.cls;
+        }
+      }
+
+      // 4. Voyants de transition en temps réel
+      grafcetSteps.forEach((step, idx) => {
+        const isActive = idx === activeStepIndex;
+        const ready = evaluateTransition(step.transition, isActive ? elapsedSec : 0);
+        const block = document.getElementById(`transBlock_${idx}`);
+        if (block) {
+          block.className = "transition-block" + (ready ? " ready" : "");
+        }
+      });
+
+      // 5. Infos étape et espion binaire
+      document.getElementById("activeStepLabel").textContent = `Étape ${activeStepIndex}`;
+      document.getElementById("stepTimerLabel").textContent = `${elapsedSec.toFixed(1)} s`;
+
+      const mByte = buildMotorByte();
+      let eByte = 0;
+      for (let i = 0; i < 8; i++) {
+        if (getEffectiveInput(`E${i + 1}`)) eByte |= (1 << i);
+      }
+      document.getElementById("spyBox").innerHTML =
+        `📤 TX : [0xC5, 0b${mByte.toString(2).padStart(8, "0")}] (M4..M1)<br>` +
+        `📥 RX : [0b${eByte.toString(2).padStart(8, "0")}]       (E8..E1)`;
+    }
+
+    // =========================================================================
+    // 6. COMMUNICATION WEB SERIAL AVEC LE 30 402 (9600 BAUDS 8N1)
+    // =========================================================================
+    function buildMotorByte() {
+      return (motors[0] & 3) | ((motors[1] & 3) << 2) | ((motors[2] & 3) << 4) | ((motors[3] & 3) << 6);
+    }
+
+    async function toggleSerialConnection() {
+      if (isSerialConnected) {
+        await disconnectSerial();
+      } else {
+        await connectSerial();
+      }
+    }
+
+    async function connectSerial() {
+      if (!("serial" in navigator)) {
+        alert("Web Serial n'est pas supporté par ce navigateur. Ouvrez ce fichier dans Google Chrome ou Microsoft Edge.");
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: "none", flowControl: "none" });
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+        isSerialConnected = true;
+        updateHeaderBadges();
+        startSerialPolling();
+      } catch (err) {
+        if (err.name !== "NotFoundError") {
+          alert("Erreur d'ouverture du port COM : " + err.message);
+        }
+        await disconnectSerial();
+      }
+    }
+
+    async function disconnectSerial() {
+      isPolling = false;
+      try {
+        if (writer) {
+          await writer.write(new Uint8Array([CMD_ONLY_DIGITAL, 0x00]));
+          writer.releaseLock();
+        }
+      } catch (_) {}
+      try {
+        if (reader) {
+          await reader.cancel();
+          reader.releaseLock();
+        }
+      } catch (_) {}
+      try {
+        if (port) await port.close();
+      } catch (_) {}
+      writer = null; reader = null; port = null;
+      isSerialConnected = false;
+      for (let i = 1; i <= 8; i++) hwInputs[`E${i}`] = false;
+      updateHeaderBadges();
+    }
+
+    async function readBytesWithTimeout(expectedCount, timeoutMs = 150) {
+      const buffer = new Uint8Array(expectedCount);
+      let offset = 0;
+      const start = performance.now();
+      while (offset < expectedCount) {
+        if (performance.now() - start > timeoutMs) return null;
+        const timeoutPromise = new Promise((r) => setTimeout(() => r({ timeout: true }), timeoutMs));
+        const res = await Promise.race([reader.read(), timeoutPromise]);
+        if (res.timeout || res.done) return null;
+        if (res.value) {
+          for (let i = 0; i < res.value.length && offset < expectedCount; i++) {
+            buffer[offset++] = res.value[i];
+          }
+        }
+      }
+      return buffer;
+    }
+
+    async function startSerialPolling() {
+      if (isPolling) return;
+      isPolling = true;
+      while (isPolling && isSerialConnected && writer && reader) {
+        try {
+          const ch = toggleAnalog ? "EX" : "EY";
+          toggleAnalog = !toggleAnalog;
+          const cmd = ch === "EX" ? CMD_READ_EX : CMD_READ_EY;
+          await writer.write(new Uint8Array([cmd, buildMotorByte()]));
+          const resp = await readBytesWithTimeout(3, 150);
+          if (resp && resp.length === 3) {
+            lastDigitalByte = resp[0];
+            for (let i = 0; i < 8; i++) {
+              hwInputs[`E${i + 1}`] = Boolean(lastDigitalByte & (1 << i));
+            }
+            analogValues[ch] = (resp[1] << 8) | resp[2];
+          }
+        } catch (err) {
+          if (err.name === "NetworkError" || err.name === "InvalidStateError") {
+            await disconnectSerial();
+            break;
+          }
+        }
+        await new Promise((r) => setTimeout(r, 45));
+      }
+    }
+
+    // Initialisation au chargement de la page
+    initSidePanelUI();
+    loadPreset("vending");
+    updateHeaderBadges();
+  </script>
+</body>
+</html>

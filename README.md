@@ -8,7 +8,8 @@
 
 | Fichier | Description |
 | :--- | :--- |
-| [`ft30402_turbowarp.js`](./ft30402_turbowarp.js) | **Extension Scratch / TurboWarp** autonome (utilise l'API *Web Serial* du navigateur, zéro installation). |
+| [`ft30402_turbowarp.js`](./ft30402_turbowarp.js) | **Extension Scratch / TurboWarp** autonome (Web Serial) avec **Modules Mécatroniques combinés** et **Blocs GRAFCET**. |
+| [`grafcet_studio_30402.html`](./grafcet_studio_30402.html) | **Studio GRAFCET / SFC Web (CEI 61131-3)** : éditeur et superviseur d'automate séquentiel en temps réel dans le navigateur (Web Serial + Mode Simulation). |
 | [`ft30402.py`](./ft30402.py) | **Bibliothèque Python** avec thread d'arrière-plan intégré et commandes en français pour **Thonny**. |
 | [`exemple_thonny.py`](./exemple_thonny.py) | Script de démarrage rapide pour Thonny (commutateur télérupteur `E1` → LED en `M2`). |
 | [`exemples/tableau_de_bord_30402.sb3`](./exemples/tableau_de_bord_30402.sb3) | **Projet TurboWarp `.sb3` clé en main** avec tableau de bord graphique IHM, voyant `E1` et jauges temps réel. |
