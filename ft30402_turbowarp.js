@@ -1,6 +1,6 @@
 // Name: fischertechnik 30 402
 // ID: ft30402webserial
-// Description: Pilote l'interface fischertechnik Intelligent Interface (30 402) via Web Serial (RS-232) avec Modules Mécatroniques et GRAFCET.
+// Description: Pilote l'interface fischertechnik Intelligent Interface (30 402) via Web Serial avec Modules Mécatroniques, GRAFCET, Régulation et Serial Plotter.
 // By: CoderDojo / Antigravity
 // License: MIT
 
@@ -23,18 +23,22 @@
   const MOTOR_RIGHT = 0b10;
   const MOTOR_BRAKE = 0b11;
 
-  // Palette de couleurs douces et reposantes à l'écran (inspirée du bleu/ardoise technique)
+  // Palette de couleurs douces et reposantes à l'écran (1 teinte par sous-groupe)
   const COLOR_BASE_1 = "#2E6B9E";  // Bleu acier doux (blocs de base)
   const COLOR_BASE_2 = "#24557D";
   const COLOR_BASE_3 = "#1B3F5E";
 
-  const COLOR_MECA_1 = "#2E856E";  // Vert sauge / émeraude doux (modules mécatroniques combinés)
+  const COLOR_MECA_1 = "#2E856E";  // Vert sauge doux (modules mécatroniques combinés)
   const COLOR_MECA_2 = "#236856";
   const COLOR_MECA_3 = "#194B3E";
 
   const COLOR_GRAF_1 = "#5C6BC0";  // Indigo doux (blocs automate GRAFCET)
   const COLOR_GRAF_2 = "#485499";
   const COLOR_GRAF_3 = "#363F73";
+
+  const COLOR_REG_1 = "#B86B2B";   // Ambre / Cuivre doux (Régulation & Serial Plotter)
+  const COLOR_REG_2 = "#945420";
+  const COLOR_REG_3 = "#703E16";
 
   // Icône SVG fischertechnik adoucie
   const ICON_SVG =
@@ -83,7 +87,26 @@
       // État de l'automate GRAFCET intégré
       this.grafcetStep = 0;
 
+      // État Régulation & Serial Plotter
+      this.plotterSetpoint = 500;
+      this.plotterBand = 25;
+      this.history = []; // Derniers échantillons { ex, ey, sp, m1 }
+      this.maxHistory = 140;
+      this.plotterPanel = null;
+      this.plotterCanvas = null;
+      this.monitorLogEl = null;
+      this.plotterPaused = false;
+      this.thermostatStates = [false, false, false, false];
+
       this._toggleAnalog = false;
+
+      // Boucle d'échantillonnage du Plotter (même en mode hors-ligne pour tester)
+      setInterval(() => {
+        if (this.plotterPanel && !this.plotterPaused) {
+          this._pushPlotterSample();
+          this._renderPlotterWidget();
+        }
+      }, 60);
 
       // Arrêt automatique des moteurs quand on clique sur le bouton STOP rouge de TurboWarp
       if (Scratch.vm && Scratch.vm.runtime) {
@@ -317,6 +340,74 @@
           "---",
           {
             blockType: Scratch.BlockType.LABEL,
+            text: "📈 Régulation & Serial Plotter",
+          },
+          {
+            opcode: "toggleSerialPlotter",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "Moniteur & Traceur Série (Plotter) : [VISIBLE]",
+            arguments: {
+              VISIBLE: { type: Scratch.ArgumentType.STRING, menu: "showHideMenu", defaultValue: "SHOW" },
+            },
+          },
+          {
+            opcode: "setPlotterSetpoint",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "tracer la consigne [VAL] (tolérance ± [BAND]) sur le Plotter",
+            arguments: {
+              VAL: { type: Scratch.ArgumentType.NUMBER, defaultValue: 500 },
+              BAND: { type: Scratch.ArgumentType.NUMBER, defaultValue: 25 },
+            },
+          },
+          {
+            opcode: "regulateThermostat",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "régulateur Thermostat (TOR) sur [MOTOR] : capteur [CHANNEL] consigne [TARGET] hystérésis [HYST]",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              CHANNEL: { type: Scratch.ArgumentType.STRING, menu: "analogMenu", defaultValue: "EX" },
+              TARGET: { type: Scratch.ArgumentType.NUMBER, defaultValue: 500 },
+              HYST: { type: Scratch.ArgumentType.NUMBER, defaultValue: 25 },
+            },
+          },
+          {
+            opcode: "regulateThreePoint",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "régulateur Position (3-Points) sur [MOTOR] : capteur [CHANNEL] consigne [TARGET] zone morte [DEADBAND]",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              CHANNEL: { type: Scratch.ArgumentType.STRING, menu: "analogMenu", defaultValue: "EX" },
+              TARGET: { type: Scratch.ArgumentType.NUMBER, defaultValue: 500 },
+              DEADBAND: { type: Scratch.ArgumentType.NUMBER, defaultValue: 20 },
+            },
+          },
+          {
+            opcode: "regulateMasterSlave",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "télémanipulateur : moteur [MOTOR] (capteur EX) recopie le volant EY (zone morte [DEADBAND])",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              DEADBAND: { type: Scratch.ArgumentType.NUMBER, defaultValue: 20 },
+            },
+          },
+          "---",
+          {
+            blockType: Scratch.BlockType.LABEL,
             text: "📊 Automate Séquentiel (GRAFCET)",
           },
           {
@@ -386,6 +477,13 @@
             items: [
               { text: "MARCHE", value: "ON" },
               { text: "ARRÊT", value: "OFF" },
+            ],
+          },
+          showHideMenu: {
+            acceptReporters: false,
+            items: [
+              { text: "AFFICHER", value: "SHOW" },
+              { text: "MASQUER", value: "HIDE" },
             ],
           },
           inputMenu: {
@@ -611,7 +709,6 @@
             for (let i = 0; i < 8; i++) {
               const key = `E${i + 1}`;
               const current = Boolean(this.digitalByte & (1 << i));
-              // Détection de front montant (0 -> 1) pour le compteur d'impulsions
               if (current && !this.prevInputs[key]) {
                 this.pulseCounts[key] = (this.pulseCounts[key] || 0) + 1;
               }
@@ -716,7 +813,7 @@
       return this.digitalByte.toString(2).padStart(8, "0");
     }
 
-    // --- Sous-groupe 1 : Modules Mécatroniques Combinés (LLWin / ROBO Pro) ---
+    // --- Sous-groupe 1 : Modules Mécatroniques Combinés ---
 
     controlMotorTwoButtons(args) {
       const idx = this._parseMotorIndex(args.MOTOR);
@@ -770,7 +867,6 @@
       const inBack = this._normalizeInputName(args.IN_BACK);
       const pauseMs = Math.max(0, Number(args.PAUSE) || 0.5) * 1000;
 
-      // 1. Aller (Droite) jusqu'au fin de course avant (max 8s)
       let start = performance.now();
       this.motors[idx] = MOTOR_RIGHT;
       while (!this.inputs[inFwd] && performance.now() - start < 8000) {
@@ -778,12 +874,10 @@
       }
       this.motors[idx] = MOTOR_STOP;
 
-      // 2. Pause intermédiaire
       if (pauseMs > 0) {
         await new Promise((r) => setTimeout(r, pauseMs));
       }
 
-      // 3. Retour (Gauche) jusqu'au fin de course arrière (max 8s)
       start = performance.now();
       this.motors[idx] = MOTOR_LEFT;
       while (!this.inputs[inBack] && performance.now() - start < 8000) {
@@ -797,6 +891,9 @@
       const ch = String(args.CHANNEL).toUpperCase().trim() === "EY" ? "EY" : "EX";
       const target = Math.min(1000, Math.max(0, Number(args.TARGET) || 500));
       const tol = Math.max(5, Number(args.TOL) || 25);
+
+      this.plotterSetpoint = target;
+      this.plotterBand = tol;
 
       const start = performance.now();
       while (performance.now() - start < 8000) {
@@ -841,7 +938,278 @@
       this.pulseCounts[key] = 0;
     }
 
-    // --- Sous-groupe 2 : Automate Séquentiel GRAFCET ---
+    // --- Sous-groupe 2 : Régulation & Serial Plotter ---
+
+    toggleSerialPlotter(args) {
+      const show = String(args.VISIBLE).toUpperCase() === "SHOW";
+      if (show) {
+        this._createPlotterWidget();
+      } else {
+        this._destroyPlotterWidget();
+      }
+    }
+
+    setPlotterSetpoint(args) {
+      this.plotterSetpoint = Math.min(1000, Math.max(0, Number(args.VAL) || 500));
+      this.plotterBand = Math.max(0, Number(args.BAND) || 25);
+    }
+
+    regulateThermostat(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const ch = String(args.CHANNEL).toUpperCase().trim() === "EY" ? "EY" : "EX";
+      const target = Math.min(1000, Math.max(0, Number(args.TARGET) || 500));
+      const hyst = Math.max(5, Number(args.HYST) || 25);
+
+      this.plotterSetpoint = target;
+      this.plotterBand = hyst;
+
+      const mesure = this.analog[ch];
+      if (mesure < target - hyst) {
+        this.thermostatStates[idx] = true;
+      } else if (mesure > target + hyst) {
+        this.thermostatStates[idx] = false;
+      }
+      this.motors[idx] = this.thermostatStates[idx] ? MOTOR_RIGHT : MOTOR_STOP;
+    }
+
+    regulateThreePoint(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const ch = String(args.CHANNEL).toUpperCase().trim() === "EY" ? "EY" : "EX";
+      const target = Math.min(1000, Math.max(0, Number(args.TARGET) || 500));
+      const deadband = Math.max(5, Number(args.DEADBAND) || 20);
+
+      this.plotterSetpoint = target;
+      this.plotterBand = deadband;
+
+      const error = target - this.analog[ch];
+      if (error > deadband) {
+        this.motors[idx] = MOTOR_RIGHT;
+      } else if (error < -deadband) {
+        this.motors[idx] = MOTOR_LEFT;
+      } else {
+        this.motors[idx] = MOTOR_STOP;
+      }
+    }
+
+    regulateMasterSlave(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const deadband = Math.max(5, Number(args.DEADBAND) || 20);
+      const target = this.analog.EY;
+      const mesure = this.analog.EX;
+
+      this.plotterSetpoint = target;
+      this.plotterBand = deadband;
+
+      const error = target - mesure;
+      if (error > deadband) {
+        this.motors[idx] = MOTOR_RIGHT;
+      } else if (error < -deadband) {
+        this.motors[idx] = MOTOR_LEFT;
+      } else {
+        this.motors[idx] = MOTOR_STOP;
+      }
+    }
+
+    _pushPlotterSample() {
+      this.history.push({
+        ex: this.analog.EX,
+        ey: this.analog.EY,
+        sp: this.plotterSetpoint,
+        band: this.plotterBand,
+        m1: this.motors[0],
+      });
+      if (this.history.length > this.maxHistory) {
+        this.history.shift();
+      }
+    }
+
+    _createPlotterWidget() {
+      if (this.plotterPanel) return;
+
+      const panel = document.createElement("div");
+      panel.style.cssText = `
+        position: fixed; right: 18px; bottom: 18px; width: 410px;
+        background: #0f172a; color: #f8fafc; border-radius: 10px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.45); border: 2px solid #334155;
+        font-family: 'Segoe UI', Consolas, sans-serif; z-index: 999990;
+        overflow: hidden; user-select: none;
+      `;
+
+      // Barre de titre déplaçable à la souris
+      const header = document.createElement("div");
+      header.style.cssText = `
+        background: #1e293b; padding: 7px 12px; display: flex;
+        justify-content: space-between; align-items: center; cursor: move;
+        border-bottom: 1px solid #334155; font-size: 12.5px; font-weight: bold;
+      `;
+      header.innerHTML = `<span>📈 Serial Monitor &amp; Plotter (30 402)</span>`;
+
+      const controls = document.createElement("div");
+      controls.style.cssText = "display:flex; gap:6px;";
+
+      const pauseBtn = document.createElement("button");
+      pauseBtn.textContent = "⏸ Pause";
+      pauseBtn.style.cssText = `
+        background: #334155; color: white; border: none; padding: 2px 8px;
+        border-radius: 4px; font-size: 11px; cursor: pointer;
+      `;
+      pauseBtn.onclick = () => {
+        this.plotterPaused = !this.plotterPaused;
+        pauseBtn.textContent = this.plotterPaused ? "▶️ Reprendre" : "⏸ Pause";
+      };
+
+      const closeBtn = document.createElement("button");
+      closeBtn.textContent = "✖";
+      closeBtn.style.cssText = `
+        background: #dc2626; color: white; border: none; padding: 2px 7px;
+        border-radius: 4px; font-size: 11px; cursor: pointer;
+      `;
+      closeBtn.onclick = () => this._destroyPlotterWidget();
+
+      controls.appendChild(pauseBtn);
+      controls.appendChild(closeBtn);
+      header.appendChild(controls);
+
+      // Légende des courbes
+      const legend = document.createElement("div");
+      legend.style.cssText = `
+        display: flex; justify-content: space-around; padding: 5px 8px;
+        font-size: 11px; background: #090d16; border-bottom: 1px solid #1e293b;
+      `;
+      legend.innerHTML = `
+        <span style="color:#4ade80; font-weight:bold;">● EX (Mesure)</span>
+        <span style="color:#fb923c; font-weight:bold;">● EY</span>
+        <span style="color:#38bdf8; font-weight:bold;">--- Consigne (±Tol)</span>
+      `;
+
+      // Canvas Oscilloscope
+      const canvas = document.createElement("canvas");
+      canvas.width = 406;
+      canvas.height = 155;
+      canvas.style.cssText = "display: block; background: #090d16;";
+
+      // Zone Serial Monitor (texte temps réel)
+      const monitor = document.createElement("div");
+      monitor.style.cssText = `
+        padding: 7px 10px; font-family: Consolas, monospace; font-size: 11px;
+        background: #1e293b; color: #cbd5e1; line-height: 1.45;
+      `;
+
+      panel.appendChild(header);
+      panel.appendChild(legend);
+      panel.appendChild(canvas);
+      panel.appendChild(monitor);
+      document.body.appendChild(panel);
+
+      // Drag & Drop de la fenêtre
+      let dragging = false, offsetX = 0, offsetY = 0;
+      header.addEventListener("mousedown", (e) => {
+        dragging = true;
+        const rect = panel.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        panel.style.left = `${Math.max(0, e.clientX - offsetX)}px`;
+        panel.style.top = `${Math.max(0, e.clientY - offsetY)}px`;
+        panel.style.right = "auto";
+        panel.style.bottom = "auto";
+      });
+      window.addEventListener("mouseup", () => { dragging = false; });
+
+      this.plotterPanel = panel;
+      this.plotterCanvas = canvas;
+      this.monitorLogEl = monitor;
+    }
+
+    _destroyPlotterWidget() {
+      if (this.plotterPanel && this.plotterPanel.parentNode) {
+        this.plotterPanel.parentNode.removeChild(this.plotterPanel);
+      }
+      this.plotterPanel = null;
+      this.plotterCanvas = null;
+      this.monitorLogEl = null;
+    }
+
+    _renderPlotterWidget() {
+      if (!this.plotterCanvas || !this.monitorLogEl) return;
+      const ctx = this.plotterCanvas.getContext("2d");
+      const w = this.plotterCanvas.width;
+      const h = this.plotterCanvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grille horizontale (0, 250, 500, 750, 1000)
+      ctx.strokeStyle = "#1e293b";
+      ctx.lineWidth = 1;
+      [0.25, 0.5, 0.75].forEach((ratio) => {
+        const y = h * ratio;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      });
+
+      const yOf = (val) => h - (Math.min(1000, Math.max(0, val)) / 1000) * (h - 14) - 7;
+
+      // Tunnel d'hystérésis / zone morte autour de la consigne
+      const spY = yOf(this.plotterSetpoint);
+      const topY = yOf(this.plotterSetpoint + this.plotterBand);
+      const botY = yOf(this.plotterSetpoint - this.plotterBand);
+
+      ctx.fillStyle = "rgba(56, 189, 248, 0.10)";
+      ctx.fillRect(0, topY, w, botY - topY);
+
+      // Ligne de Consigne (bleu pointillé)
+      ctx.strokeStyle = "#38bdf8";
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, spY);
+      ctx.lineTo(w, spY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (this.history.length > 1) {
+        const stepX = w / (this.maxHistory - 1);
+
+        // Courbe EY (Orange)
+        ctx.strokeStyle = "#fb923c";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        this.history.forEach((pt, i) => {
+          const x = i * stepX;
+          const y = yOf(pt.ey);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Courbe EX (Vert vif)
+        ctx.strokeStyle = "#4ade80";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        this.history.forEach((pt, i) => {
+          const x = i * stepX;
+          const y = yOf(pt.ex);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+
+      // Mise à jour du Serial Monitor texte en bas du widget
+      const mByte = this._buildMotorByte();
+      const err = this.plotterSetpoint - this.analog.EX;
+      this.monitorLogEl.innerHTML =
+        `<div><b>EX:</b> <span style="color:#4ade80">${String(this.analog.EX).padStart(4, " ")}</span> | ` +
+        `<b>EY:</b> <span style="color:#fb923c">${String(this.analog.EY).padStart(4, " ")}</span> | ` +
+        `<b>Consigne:</b> <span style="color:#38bdf8">${this.plotterSetpoint}</span> (Err: ${err > 0 ? "+" + err : err})</div>` +
+        `<div><b>TX:</b> [0xC5, 0b${mByte.toString(2).padStart(8, "0")}] | ` +
+        `<b>RX E8..E1:</b> [0b${this.digitalByte.toString(2).padStart(8, "0")}]</div>`;
+    }
+
+    // --- Sous-groupe 3 : Automate Séquentiel GRAFCET ---
 
     whenGrafcetStep(args) {
       return this.grafcetStep === Number(args.STEP);
@@ -849,7 +1217,6 @@
 
     grafcetTransitionTo(args) {
       if (Boolean(args.COND)) {
-        // Coupe les actions continues de l'étape précédente et active la nouvelle étape
         this.stopAllMotors();
         this.grafcetStep = Number(args.NEXT_STEP);
       }
