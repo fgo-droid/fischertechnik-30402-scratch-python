@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSLogix 500 Pro — fischertechnik 30 402 Ladder Studio (.RSS)</title>
+  <style>
+    /* Look authentique Windows Classic / RSLogix 500 Pro */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Tahoma", "MS Sans Serif", "Segoe UI", sans-serif;
+      font-size: 12px;
+      background: #d4d0c8;
+      color: #000000;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* Barre de titre Windows & Menu */
+    .win-titlebar {
+      background: linear-gradient(90deg, #0a246a 0%, #a6caf0 100%);
+      color: white;
+      font-weight: bold;
+      padding: 4px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12.5px;
+    }
+    .win-menubar {
+      background: #d4d0c8;
+      border-bottom: 1px solid #808080;
+      padding: 3px 8px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .win-menubar span { cursor: pointer; padding: 1px 4px; }
+    .win-menubar span:hover { background: #0a246a; color: white; }
+
+    /* Bandeau d'état RSLogix 500 (Online Box + Ladder Icon + Palette d'instructions) */
+    .rs-top-deck {
+      background: #d4d0c8;
+      border-top: 1px solid #ffffff;
+      border-bottom: 2px groove #ffffff;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Panneau d'état Online/Run à gauche avec l'échelle rotative */
+    .plc-status-panel {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #d4d0c8;
+      border: 2px inset #ffffff;
+      padding: 4px 8px;
+    }
+    .status-grid {
+      display: grid;
+      grid-template-columns: 115px 110px;
+      gap: 3px;
+    }
+    .rs-box {
+      background: #ffffff;
+      border: 1px inset #808080;
+      padding: 2px 6px;
+      font-weight: bold;
+      font-size: 11px;
+      text-align: center;
+    }
+    .rs-box.run-mode {
+      background: #00aa00;
+      color: #ffffff;
+    }
+    .rs-box.prog-mode {
+      background: #008080;
+      color: #ffffff;
+    }
+    .rs-box.serial-ok {
+      background: #ffff80;
+      color: #000000;
+    }
+
+    /* Icône d'échelle animée RSLogix */
+    .ladder-spinner {
+      width: 42px;
+      height: 42px;
+      background: #000000;
+      border: 2px inset #808080;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .ladder-icon {
+      width: 24px;
+      height: 32px;
+      border-left: 3px solid #ff3300;
+      border-right: 3px solid #00ff00;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 2px 0;
+    }
+    .ladder-icon div {
+      height: 3px;
+      background: #ffff00;
+    }
+    .ladder-spinner.spinning .ladder-icon {
+      animation: flipLadder 0.6s infinite linear;
+    }
+    @keyframes flipLadder {
+      0%   { transform: scaleX(1); }
+      50%  { transform: scaleX(0.15); }
+      100% { transform: scaleX(1); }
+    }
+
+    /* Palette d'instructions Ladder (XIC, XIO, OSR, OTE, OTL, OTU, TON, CTU) */
+    .inst-palette {
+      display: flex;
+      flex-direction: column;
+      border: 2px inset #ffffff;
+      padding: 3px 6px;
+      background: #d4d0c8;
+    }
+    .inst-buttons {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .win-btn {
+      background: #d4d0c8;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      padding: 3px 8px;
+      font-family: "Courier New", Consolas, monospace;
+      font-weight: bold;
+      font-size: 11.5px;
+      cursor: pointer;
+      color: #000;
+    }
+    .win-btn:active {
+      border-top: 2px solid #404040;
+      border-left: 2px solid #404040;
+      border-right: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+    }
+    .win-btn.primary-action {
+      font-family: "Tahoma", sans-serif;
+      background: #e4e0d8;
+    }
+
+    /* Zone Centrale : Arbre Projet à gauche + Fenêtre LAD 2 - MAIN à droite */
+    .workspace-split {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 265px 1fr;
+      gap: 4px;
+      padding: 4px;
+      overflow: hidden;
+    }
+
+    /* Arbre Project / Data Files à gauche */
+    .project-tree-win {
+      background: #ffffff;
+      border: 2px inset #808080;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .mdi-header {
+      background: linear-gradient(90deg, #0a246a 0%, #3a6ea5 100%);
+      color: white;
+      font-weight: bold;
+      padding: 3px 8px;
+      font-size: 11.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .tree-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px;
+      font-size: 11.5px;
+    }
+    .tree-folder {
+      font-weight: bold;
+      margin-top: 6px;
+      margin-bottom: 3px;
+      color: #000080;
+    }
+    .tree-item {
+      padding: 2px 6px 2px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dotted #e0e0e0;
+    }
+    .tree-item:hover { background: #e8f0fe; }
+    .bit-badge {
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      padding: 0 5px;
+      border: 1px solid #808080;
+      background: #f0f0f0;
+    }
+    .bit-badge.on {
+      background: #00ff00;
+      color: #000000;
+      border-color: #008000;
+    }
+
+    /* Fenêtre d'édition LAD 2 -- MAIN */
+    .ladder-editor-win {
+      background: #ffffff;
+      border: 2px inset #808080;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .ladder-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px 60px 6px;
+      background: #ffffff;
+    }
+
+    /* Un Barreau d'Échelle (Rung) RSLogix 500 */
+    .rung-container {
+      display: flex;
+      border-bottom: 1px solid #d4d0c8;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .rung-container.selected .rung-number-gutter {
+      background: #ff0000;
+      color: #ffffff;
+    }
+
+    /* Gouttière gauche avec le numéro de barreau 0000, 0001... */
+    .rung-number-gutter {
+      width: 48px;
+      background: #d4d0c8;
+      border-right: 3px double #000080;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      font-size: 13px;
+      color: #0000ff;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .rung-container.energized .rung-number-gutter {
+      border-right: 4px solid #00ff00;
+    }
+
+    .rung-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 3px solid #000080;
+    }
+    .rung-container.energized .rung-body {
+      border-right: 4px solid #00ff00;
+    }
+
+    /* Commentaire de Rung sur fond jaune vif (comme dans RSLogix 500 !) */
+    .rung-comment {
+      background: #ffff00;
+      color: #000000;
+      font-family: "Times New Roman", Georgia, serif;
+      font-size: 13.5px;
+      padding: 4px 8px;
+      border-bottom: 1px solid #cccc00;
+      width: 100%;
+      border: none;
+      outline: none;
+    }
+    .rung-title-banner {
+      background: #00ff00;
+      color: #000000;
+      font-family: "Times New Roman", serif;
+      font-weight: bold;
+      text-align: center;
+      font-size: 13.5px;
+      padding: 2px;
+    }
+
+    /* Zone schématique du fil électrique horizontal */
+    .rung-wire-area {
+      position: relative;
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 12px;
+    }
+    /* Le fil bleu (ou vert si sous tension) qui traverse le barreau */
+    .rung-wire-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: #0000ff;
+      z-index: 1;
+    }
+    .rung-container.energized .rung-wire-line {
+      background: #00dd00;
+      height: 3px;
+    }
+
+    .conditions-side {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      z-index: 2;
+      padding-left: 12px;
+      flex-wrap: wrap;
+    }
+
+    .outputs-side {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 2;
+      padding-right: 14px;
+      border-left: 2px solid #0000ff;
+      padding-left: 14px;
+      background: rgba(255,255,255,0.85);
+    }
+
+    /* Composant Ladder (Contact ] [ ou Bobine ( )) */
+    .ladder-elem {
+      background: #ffffff;
+      padding: 2px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .ladder-elem:hover {
+      border: 1px dashed #000080;
+    }
+
+    /* Étiquette Symbole sur fond Vert Fluo #00ff00 (exactement comme RSLogix 500) */
+    .sym-tag {
+      background: #00ff00;
+      color: #000000;
+      font-family: "Times New Roman", serif;
+      font-size: 12px;
+      padding: 0 5px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      font-weight: normal;
+    }
+
+    /* Adresse Allen-Bradley au-dessus du symbole (ex: B3:0, I:1, O:0) */
+    .ab-addr-top {
+      font-family: "Times New Roman", serif;
+      font-size: 12.5px;
+      color: #000000;
+      line-height: 1.1;
+    }
+
+    /* Le symbole graphique ] [ ou (L) avec surbrillance Verte quand TRUE */
+    .ab-graphic {
+      font-family: "Courier New", Consolas, monospace;
+      font-size: 15px;
+      font-weight: bold;
+      color: #0000ff;
+      padding: 1px 4px;
+      margin: 1px 0;
+      position: relative;
+    }
+    .ladder-elem.true-state .ab-graphic {
+      background: #00ff00;
+      color: #000000;
+      box-shadow: 0 0 0 2px #00cc00;
+    }
+
+    /* Numéro de bit en dessous (ex: 0, 1, 4) */
+    .ab-bit-bot {
+      font-family: "Times New Roman", serif;
+      font-size: 12px;
+      color: #000000;
+      line-height: 1.1;
+    }
+
+    /* Boîte spéciale pour Timer TON / Compteur CTU / Comparateur CMP */
+    .ab-block-box {
+      border: 1.5px solid #0000ff;
+      background: #ffffff;
+      padding: 4px 10px;
+      font-family: "Times New Roman", serif;
+      font-size: 12px;
+      min-width: 155px;
+    }
+    .ladder-elem.true-state .ab-block-box {
+      border-color: #00aa00;
+      box-shadow: 0 0 0 2px #00ff00;
+    }
+    .ab-block-title {
+      color: #0000ff;
+      font-weight: bold;
+      border-bottom: 1px solid #0000ff;
+      margin-bottom: 3px;
+      text-align: center;
+    }
+
+    /* Barre d'état inférieure RSLogix 500 */
+    footer {
+      background: #d4d0c8;
+      border-top: 2px groove #ffffff;
+      padding: 3px 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+    }
+    .status-cell {
+      border: 1px inset #808080;
+      padding: 1px 8px;
+      background: #d4d0c8;
+    }
+
+    /* Fenêtre Modale d'édition d'un élément Ladder */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .win-dialog {
+      background: #d4d0c8;
+      border-top: 2px solid #ffffff;
+      border-left: 2px solid #ffffff;
+      border-right: 2px solid #404040;
+      border-bottom: 2px solid #404040;
+      width: 380px;
+      box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+    }
+    .dialog-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .dialog-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dialog-row input, .dialog-row select {
+      width: 210px;
+      padding: 3px;
+      font-family: inherit;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRE DE TITRE WINDOWS CLASSIC -->
+  <div class="win-titlebar">
+    <div>🪜 RSLogix 500 Pro - [FISCHERTECHNIK 30 402 LADDER STUDIO.RSS - LAD 2 -- MAIN]</div>
+    <div style="font-weight:normal; font-size:11px;">Rockwell / Allen-Bradley SLC 500 Emulator for fischertechnik 30 402</div>
+  </div>
+
+  <!-- BARRE DE MENU -->
+  <div class="win-menubar">
+    <span><u>F</u>ile</span>
+    <span><u>E</u>dit</span>
+    <span><u>V</u>iew</span>
+    <span><u>S</u>earch</span>
+    <span onclick="toggleSerialConnection()"><u>C</u>omms (RS-232)</span>
+    <span><u>T</u>ools</span>
+    <div style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+      <b>Programme démo (.RSS) :</b>
+      <select id="presetSelect" onchange="loadPreset(this.value)" style="font-size:11.5px; padding:2px;">
+        <option value="osr_toggle">1. TELE_OSR.RSS — Télérupteur avec Front Montant [OSR] &amp; Latch (L)/(U)</option>
+        <option value="seal_in">2. SEAL_IN.RSS — Démarrage Moteur Auto-Maintenu (Marche E1 / Arrêt E2)</option>
+        <option value="vending">3. VENDING_SLC.RSS — Distributeur de Mouchoirs (Pièce E1, Timer T4:0 &amp; Poussoir)</option>
+        <option value="barrier">4. BARRIER_AB.RSS — Barrière de Parking (Comparateur EX &amp; Fins de course)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TABLEAU DE BORD SUPÉRIEUR RSLOGIX 500 -->
+  <div class="rs-top-deck">
+    <!-- Bloc Statut Online / Run + Échelle rotative -->
+    <div class="plc-status-panel">
+      <div class="status-grid">
+        <div id="plcModeBox" class="rs-box run-mode">REMOTE RUN</div>
+        <div id="serialBox" class="rs-box">SIMULATION</div>
+        <div class="rs-box">No Edits</div>
+        <div class="rs-box" style="font-size:10px;">Driver: FT30402</div>
+      </div>
+      <div id="ladderSpinner" class="ladder-spinner spinning" title="Balayage Automate (Scan Cycle) actif">
+        <div class="ladder-icon">
+          <div></div><div></div><div></div><div></div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:3px;">
+        <button id="btnConnect" class="win-btn primary-action" onclick="toggleSerialConnection()">🔌 Connecter COM</button>
+        <div style="display:flex; gap:3px;">
+          <button class="win-btn" style="background:#b9f6ca;" onclick="setPlcRun(true)">▶ RUN</button>
+          <button class="win-btn" style="background:#ffcdd2;" onclick="setPlcRun(false)">⏹ PROG/STOP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Palette d'instructions RSLogix 500 pour ajouter au Rung sélectionné -->
+    <div class="inst-palette">
+      <div style="font-size:10.5px; color:#333; margin-bottom:2px; display:flex; justify-content:space-between;">
+        <span><b>Ajouter au barreau sélectionné (<span id="selectedRungLabel">Rung 0000</span>) :</b></span>
+        <span><i>(Cliquez sur un symbole du schéma pour modifier son adresse !)</i></span>
+      </div>
+      <div class="inst-buttons">
+        <button class="win-btn" onclick="addConditionToSelectedRung('XIC')" title="Examine If Closed (Contact Normalement Ouvert)">—] [— XIC</button>
+        <button class="win-btn" onclick="addConditionToSelectedRung('XIO')" title="Examine If Open (Contact Normalement Fermé)">—]/[— XIO</button>
+        <button class="win-btn" onclick="addConditionToSelectedRung('OSR')" title="One-Shot Rising (Impulsion sur Front Montant)">—[OSR]—</button>
+        <button class="win-btn" onclick="addConditionToSelectedRung('LES')" title="Comparateur Analogique EX < Seuil">—[LES EX&lt;]—</button>
+        <button class="win-btn" onclick="addConditionToSelectedRung('GRT')" title="Comparateur Analogique EX > Seuil">—[GRT EX&gt;]—</button>
+        <span style="border-left:2px groove #fff; margin:0 2px;"></span>
+        <button class="win-btn" onclick="addOutputToSelectedRung('OTE')" title="Output Energize (Bobine Normale)">—( )— OTE</button>
+        <button class="win-btn" onclick="addOutputToSelectedRung('OTL')" title="Output Latch (Bobine Set / Maintien)">—(L)— OTL</button>
+        <button class="win-btn" onclick="addOutputToSelectedRung('OTU')" title="Output Unlatch (Bobine Reset)">—(U)— OTU</button>
+        <button class="win-btn" onclick="addOutputToSelectedRung('TON')" title="Timer On-Delay (Temporisateur T4)">—[TON T4]—</button>
+        <button class="win-btn" onclick="addOutputToSelectedRung('CTU')" title="Count Up (Compteur C5)">—[CTU C5]—</button>
+        <span style="border-left:2px groove #fff; margin:0 2px;"></span>
+        <button class="win-btn primary-action" onclick="addNewRung()">➕ Nouveau Rung</button>
+        <button class="win-btn primary-action" onclick="deleteSelectedRung()">🗑️ Suppr. Rung</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZONE CENTRALE : ARBRE DATA FILES (GAUCHE) + SCHÉMA LADDER (DROITE) -->
+  <div class="workspace-split">
+    <!-- Arbre Data Files RSLogix 500 -->
+    <div class="project-tree-win">
+      <div class="mdi-header">
+        <span>📁 Project — Data Files</span>
+        <span>SLC 5/04</span>
+      </div>
+      <div class="tree-content">
+        <div class="tree-folder">🔌 I1 - INPUT (Capteurs E1–E8)</div>
+        <div style="font-size:10.5px; color:#555; padding-left:8px; margin-bottom:3px;">
+          (Cliquez sur une entrée pour la forcer à 1 ou 0)
+        </div>
+        <div id="treeInputs"></div>
+
+        <div class="tree-folder">⚙️ O0 - OUTPUT (Moteurs M1–M4)</div>
+        <div id="treeOutputs"></div>
+
+        <div class="tree-folder">🟢 B3 - BINARY (Bits Internes)</div>
+        <div id="treeBinary"></div>
+
+        <div class="tree-folder">⏱️ T4 - TIMER &amp; C5 - COUNTER</div>
+        <div id="treeTimers"></div>
+
+        <div class="tree-folder">🌡️ N7 - INTEGER (Analog EX / EY)</div>
+        <div style="padding:4px 8px;">
+          <div style="display:flex; justify-content:space-between;">
+            <b>N7:0 (EX) :</b> <span id="n7_0_val">500</span>
+          </div>
+          <input type="range" id="exRange" min="0" max="1000" value="500" style="width:100%;" oninput="analogN7[0]=Number(this.value)">
+          <div style="display:flex; justify-content:space-between; margin-top:4px;">
+            <b>N7:1 (EY) :</b> <span id="n7_1_val">500</span>
+          </div>
+          <input type="range" id="eyRange" min="0" max="1000" value="500" style="width:100%;" oninput="analogN7[1]=Number(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Fenêtre Principale LAD 2 -- MAIN -->
+    <div class="ladder-editor-win">
+      <div class="mdi-header">
+        <span>🪜 LAD 2 -- MAIN (Cycle de scan temps réel : 25 Hz)</span>
+        <span>Double-cliquez ou cliquez sur une instruction pour l'éditer</span>
+      </div>
+      <div class="ladder-scroll">
+        <div class="rung-title-banner">
+          FISCHERTECHNIK 30 402 — AUTOMATE LADDER RSLOGIX 500 (I:1 = E1..E8 | O:0 = M1..M4 | B3:0 = BITS INTERNES)
+        </div>
+        <div id="rungsContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRE DE STATUT INFÉRIEURE -->
+  <footer>
+    <div class="status-cell" id="footerMsg">Prêt — Cliquez sur les entrées I:1/0 (E1) à gauche ou connectez l'interface 30 402 en RS-232.</div>
+    <div style="display:flex; gap:6px;">
+      <div class="status-cell" id="scanCounterCell">Scan: 40 ms</div>
+      <div class="status-cell">2:0000</div>
+      <div class="status-cell" id="runStateCell" style="background:#00ff00; font-weight:bold;">RUN</div>
+    </div>
+  </footer>
+
+  <!-- BOÎTE DE DIALOGUE D'ÉDITION D'UN ÉLÉMENT LADDER -->
+  <div id="editModal" class="modal-backdrop">
+    <div class="win-dialog">
+      <div class="win-titlebar">
+        <span id="modalTitle">Éditer l'instruction Ladder</span>
+        <button onclick="closeModal()" style="background:#d4d0c8; border:1px outset #fff; font-weight:bold; cursor:pointer;">X</button>
+      </div>
+      <div class="dialog-body">
+        <div class="dialog-row">
+          <label><b>Symbole (Tag vert) :</b></label>
+          <input type="text" id="editSymInput">
+        </div>
+        <div class="dialog-row">
+          <label><b>Type d'instruction :</b></label>
+          <select id="editTypeSelect"></select>
+        </div>
+        <div class="dialog-row">
+          <label><b>Adresse Allen-Bradley :</b></label>
+          <select id="editAddrSelect"></select>
+        </div>
+        <div class="dialog-row" id="editParamRow">
+          <label><b id="editParamLabel">Preset / Seuil :</b></label>
+          <input type="number" id="editParamInput" value="2.0" step="0.5">
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px;">
+          <button class="win-btn" style="color:#b00000;" onclick="deleteCurrentElement()">🗑️ Supprimer</button>
+          <div style="display:flex; gap:6px;">
+            <button class="win-btn" onclick="saveModalChanges()">✅ OK</button>
+            <button class="win-btn" onclick="closeModal()">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. TABLES DE DONNÉES ALLEN-BRADLEY SLC 500 (Data Files)
+    // =========================================================================
+    // I:1/0 à I:1/7 -> Entrées physiques E1 à E8 du fischertechnik 30 402
+    const hwInputsI1 = [false, false, false, false, false, false, false, false];
+    const forceInputsI1 = [false, false, false, false, false, false, false, false];
+
+    // O:0/0 à O:0/7 -> Sorties physiques M1+, M1-, M2+, M2-, M3+, M3-, M4+, M4-
+    const outputsO0 = [false, false, false, false, false, false, false, false];
+    const OUTPUT_NAMES = [
+      "M1 Droite/ON (O:0/0)", "M1 Gauche (O:0/1)",
+      "M2 Droite/ON (O:0/2)", "M2 Gauche (O:0/3)",
+      "M3 Droite/ON (O:0/4)", "M3 Gauche (O:0/5)",
+      "M4 Droite/ON (O:0/6)", "M4 Gauche (O:0/7)"
+    ];
+
+    // B3:0/0 à B3:0/7 -> Bits internes
+    const binaryB3 = [false, false, false, false, false, false, false, false];
+    // Mémoire de l'état précédent pour les instructions [OSR] (One-Shot Rising)
+    const osrMemory = {};
+
+    // T4:0 à T4:1 -> Temporisateurs TON (Preset en secondes, Accumulateur en secondes, bit DN)
+    const timersT4 = [
+      { pre: 2.0, acc: 0.0, dn: false, en: false },
+      { pre: 3.0, acc: 0.0, dn: false, en: false }
+    ];
+
+    // C5:0 à C5:1 -> Compteurs CTU (Preset, Accumulateur, bit DN, mémoire front CU)
+    const countersC5 = [
+      { pre: 3, acc: 0, dn: false, prevCu: false },
+      { pre: 5, acc: 0, dn: false, prevCu: false }
+    ];
+
+    // N7:0 (EX) et N7:1 (EY) -> Entiers analogiques 0..1000
+    const analogN7 = [500, 500];
+
+    // Catalogue de toutes les adresses disponibles dans l'éditeur
+    const ADDRESS_CATALOG = [
+      { addr: "I:1/0", top: "I:1", bot: "0 (E1)", label: "Entrée E1 (I:1/0)" },
+      { addr: "I:1/1", top: "I:1", bot: "1 (E2)", label: "Entrée E2 (I:1/1)" },
+      { addr: "I:1/2", top: "I:1", bot: "2 (E3)", label: "Entrée E3 (I:1/2)" },
+      { addr: "I:1/3", top: "I:1", bot: "3 (E4)", label: "Entrée E4 (I:1/3)" },
+      { addr: "I:1/4", top: "I:1", bot: "4 (E5)", label: "Entrée E5 (I:1/4)" },
+      { addr: "I:1/5", top: "I:1", bot: "5 (E6)", label: "Entrée E6 (I:1/5)" },
+      { addr: "I:1/6", top: "I:1", bot: "6 (E7)", label: "Entrée E7 (I:1/6)" },
+      { addr: "I:1/7", top: "I:1", bot: "7 (E8)", label: "Entrée E8 (I:1/7)" },
+      { addr: "B3:0/0", top: "B3:0", bot: "0", label: "Bit Interne B3:0/0" },
+      { addr: "B3:0/1", top: "B3:0", bot: "1", label: "Bit Interne B3:0/1" },
+      { addr: "B3:0/2", top: "B3:0", bot: "2", label: "Bit Interne B3:0/2" },
+      { addr: "B3:0/3", top: "B3:0", bot: "3", label: "Bit Interne B3:0/3" },
+      { addr: "B3:0/4", top: "B3:0", bot: "4", label: "Bit Interne B3:0/4" },
+      { addr: "O:0/0", top: "O:0", bot: "0 (M1+)", label: "Sortie M1 Droite/ON (O:0/0)" },
+      { addr: "O:0/1", top: "O:0", bot: "1 (M1-)", label: "Sortie M1 Gauche (O:0/1)" },
+      { addr: "O:0/2", top: "O:0", bot: "2 (M2+)", label: "Sortie M2 Droite/LED (O:0/2)" },
+      { addr: "O:0/3", top: "O:0", bot: "3 (M2-)", label: "Sortie M2 Gauche (O:0/3)" },
+      { addr: "O:0/4", top: "O:0", bot: "4 (M3+)", label: "Sortie M3 Droite/ON (O:0/4)" },
+      { addr: "O:0/5", top: "O:0", bot: "5 (M3-)", label: "Sortie M3 Gauche (O:0/5)" },
+      { addr: "O:0/6", top: "O:0", bot: "6 (M4+)", label: "Sortie M4 Droite/ON (O:0/6)" },
+      { addr: "O:0/7", top: "O:0", bot: "7 (M4-)", label: "Sortie M4 Gauche (O:0/7)" },
+      { addr: "T4:0/DN", top: "T4:0", bot: "DN", label: "Bit Fin de Timer T4:0/DN" },
+      { addr: "T4:1/DN", top: "T4:1", bot: "DN", label: "Bit Fin de Timer T4:1/DN" },
+      { addr: "C5:0/DN", top: "C5:0", bot: "DN", label: "Bit Fin de Compteur C5:0/DN" },
+      { addr: "T4:0", top: "T4:0", bot: "TON", label: "Temporisateur T4:0" },
+      { addr: "T4:1", top: "T4:1", bot: "TON", label: "Temporisateur T4:1" },
+      { addr: "C5:0", top: "C5:0", bot: "CTU", label: "Compteur C5:0" },
+      { addr: "N7:0", top: "N7:0", bot: "EX", label: "Analogique EX (N7:0)" }
+    ];
+
+    function getBitValue(addr) {
+      if (addr.startsWith("I:1/")) {
+        const idx = parseInt(addr.split("/")[1], 10);
+        return Boolean(hwInputsI1[idx] || forceInputsI1[idx]);
+      }
+      if (addr.startsWith("O:0/")) {
+        const idx = parseInt(addr.split("/")[1], 10);
+        return Boolean(outputsO0[idx]);
+      }
+      if (addr.startsWith("B3:0/")) {
+        const idx = parseInt(addr.split("/")[1], 10);
+        return Boolean(binaryB3[idx]);
+      }
+      if (addr === "T4:0/DN") return timersT4[0].dn;
+      if (addr === "T4:1/DN") return timersT4[1].dn;
+      if (addr === "C5:0/DN") return countersC5[0].dn;
+      return false;
+    }
+
+    function setBitValue(addr, val) {
+      if (addr.startsWith("O:0/")) {
+        const idx = parseInt(addr.split("/")[1], 10);
+        outputsO0[idx] = Boolean(val);
+      } else if (addr.startsWith("B3:0/")) {
+        const idx = parseInt(addr.split("/")[1], 10);
+        binaryB3[idx] = Boolean(val);
+      } else if (addr === "C5:0" && !val) {
+        countersC5[0].acc = 0;
+        countersC5[0].dn = false;
+      }
+    }
+
+    // =========================================================================
+    // 2. PROGRAMMES LADDER PRÉCHARGÉS (.RSS)
+    // =========================================================================
+    let plcRunMode = true;
+    let selectedRungIdx = 0;
+    let ladderRungs = [];
+
+    const PRESET_PROGRAMS = {
+      // 1. Télérupteur avec [OSR] (comme sur la capture d'écran de l'utilisateur !)
+      osr_toggle: [
+        {
+          comment: "Rung 0000 : Détection d'un front montant [OSR] sur le bouton E1 (I:1/0) -> génère une impulsion d'un seul scan dans B3:0/0.",
+          conditions: [
+            { type: "XIC", addr: "I:1/0", sym: "BTN_E1" },
+            { type: "OSR", addr: "B3:0/4", sym: "ONE_SHOT_1" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "B3:0/0", sym: "PULSE_E1" }
+          ]
+        },
+        {
+          comment: "Rung 0001 : Si impulsion B3:0/0 et que la LED M2 est éteinte -> On enclenche (Latch <L>) la LED M2 (O:0/2) et le témoin B3:0/1.",
+          conditions: [
+            { type: "XIC", addr: "B3:0/0", sym: "PULSE_E1" },
+            { type: "XIO", addr: "B3:0/2", sym: "MEM_ETAT" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "O:0/2", sym: "LED_M2_ON" },
+            { type: "OTL", addr: "B3:0/1", sym: "DEMANDE_ON" }
+          ]
+        },
+        {
+          comment: "Rung 0002 : Si impulsion B3:0/0 et que la LED M2 était déjà allumée (B3:0/2) -> On déclenche (Unlatch <U>) la LED M2 (O:0/2).",
+          conditions: [
+            { type: "XIC", addr: "B3:0/0", sym: "PULSE_E1" },
+            { type: "XIC", addr: "B3:0/2", sym: "MEM_ETAT" }
+          ],
+          outputs: [
+            { type: "OTU", addr: "O:0/2", sym: "LED_M2_OFF" },
+            { type: "OTU", addr: "B3:0/1", sym: "RESET_DEM" }
+          ]
+        },
+        {
+          comment: "Rung 0003 : Synchronisation de la mémoire d'état B3:0/2 pour le prochain appui sur E1.",
+          conditions: [
+            { type: "XIC", addr: "B3:0/1", sym: "DEMANDE_ON" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "B3:0/2", sym: "MEM_ETAT" }
+          ]
+        }
+      ],
+
+      // 2. Démarrage Moteur avec Auto-Maintien et Arrêt
+      seal_in: [
+        {
+          comment: "Rung 0000 : Appui sur Marche E1 (I:1/0) enclenche (Latch) la marche moteur B3:0/0 tant que Arrêt E2 (I:1/1) n'est pas pressé.",
+          conditions: [
+            { type: "XIC", addr: "I:1/0", sym: "MARCHE_E1" },
+            { type: "XIO", addr: "I:1/1", sym: "ARRET_E2" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "B3:0/0", sym: "RUN_LATCH" }
+          ]
+        },
+        {
+          comment: "Rung 0001 : Appui sur le bouton d'arrêt ou fin de course E2 (I:1/1) coupe immédiatement le maintien (Unlatch B3:0/0).",
+          conditions: [
+            { type: "XIC", addr: "I:1/1", sym: "ARRET_E2" }
+          ],
+          outputs: [
+            { type: "OTU", addr: "B3:0/0", sym: "STOP_UNLATCH" }
+          ]
+        },
+        {
+          comment: "Rung 0002 : Tant que B3:0/0 est actif, on alimente le moteur M1 Droite (O:0/0) et le voyant M2 (O:0/2).",
+          conditions: [
+            { type: "XIC", addr: "B3:0/0", sym: "RUN_LATCH" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "O:0/0", sym: "MOTEUR_M1" },
+            { type: "OTE", addr: "O:0/2", sym: "VOYANT_M2" }
+          ]
+        }
+      ],
+
+      // 3. Distributeur Automatique à Monnayeur
+      vending: [
+        {
+          comment: "Rung 0000 : Insertion d'une pièce en E1 (I:1/0) -> Verrouille le crédit (B3:0/0 <L>) et allume le voyant Prêt M2 (O:0/2 <L>).",
+          conditions: [
+            { type: "XIC", addr: "I:1/0", sym: "PIECE_E1" },
+            { type: "OSR", addr: "B3:0/4", sym: "OSR_PIECE" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "B3:0/0", sym: "CREDIT_OK" },
+            { type: "OTL", addr: "O:0/2", sym: "VOYANT_PRET" }
+          ]
+        },
+        {
+          comment: "Rung 0001 : Si Crédit OK (B3:0/0) et que le client appuie sur E3 (I:1/2) -> Lance l'éjection (B3:0/1 <L>) et compte la vente C5:0.",
+          conditions: [
+            { type: "XIC", addr: "B3:0/0", sym: "CREDIT_OK" },
+            { type: "XIC", addr: "I:1/2", sym: "BOUTON_CLIENT_E3" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "B3:0/1", sym: "PHASE_POUSSER" },
+            { type: "CTU", addr: "C5:0", sym: "COMPTE_VENTES", param: 10 }
+          ]
+        },
+        {
+          comment: "Rung 0002 : Phase Éjection (B3:0/1) -> Fait avancer le tiroir M1 Droite (O:0/0) tant que le fin de course avant E5 (I:1/4) n'est pas touché.",
+          conditions: [
+            { type: "XIC", addr: "B3:0/1", sym: "PHASE_POUSSER" },
+            { type: "XIO", addr: "I:1/4", sym: "FDC_AVANT_E5" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "O:0/0", sym: "POUSSOIR_AVANT" }
+          ]
+        },
+        {
+          comment: "Rung 0003 : Fin de course avant E5 (I:1/4) atteint -> Coupe l'avance (B3:0/1 <U>), consomme le crédit (B3:0/0 <U>) et lance le retour (B3:0/2 <L>).",
+          conditions: [
+            { type: "XIC", addr: "I:1/4", sym: "FDC_AVANT_E5" }
+          ],
+          outputs: [
+            { type: "OTU", addr: "B3:0/1", sym: "STOP_AVANCE" },
+            { type: "OTL", addr: "B3:0/2", sym: "PHASE_RETOUR" }
+          ]
+        },
+        {
+          comment: "Rung 0004 : Phase Retour (B3:0/2) -> Recule le tiroir M1 Gauche (O:0/1) jusqu'au fin de course arrière E4 (I:1/3).",
+          conditions: [
+            { type: "XIC", addr: "B3:0/2", sym: "PHASE_RETOUR" },
+            { type: "XIO", addr: "I:1/3", sym: "FDC_REPOS_E4" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "O:0/1", sym: "POUSSOIR_RETOUR" }
+          ]
+        },
+        {
+          comment: "Rung 0005 : Retour terminé sur E4 (I:1/3) -> Remet à zéro la phase retour et éteint le voyant client M2.",
+          conditions: [
+            { type: "XIC", addr: "I:1/3", sym: "FDC_REPOS_E4" }
+          ],
+          outputs: [
+            { type: "OTU", addr: "B3:0/2", sym: "FIN_RETOUR" },
+            { type: "OTU", addr: "B3:0/0", sym: "RAZ_CREDIT" },
+            { type: "OTU", addr: "O:0/2", sym: "ETEINDRE_M2" }
+          ]
+        }
+      ],
+
+      // 4. Barrière avec Comparateur EX et Timer TON
+      barrier: [
+        {
+          comment: "Rung 0000 : Demande d'ouverture E1 (I:1/0) -> Enclenche la montée de la barrière (B3:0/0 <L>) et le feu M2 (O:0/2 <L>).",
+          conditions: [
+            { type: "XIC", addr: "I:1/0", sym: "APPEL_E1" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "B3:0/0", sym: "ORDRE_MONTER" },
+            { type: "OTL", addr: "O:0/2", sym: "FEU_ALERTE_M2" }
+          ]
+        },
+        {
+          comment: "Rung 0001 : Montée Barrière M1 Droite (O:0/0) jusqu'au fin de course haut E2 (I:1/1).",
+          conditions: [
+            { type: "XIC", addr: "B3:0/0", sym: "ORDRE_MONTER" },
+            { type: "XIO", addr: "I:1/1", sym: "FDC_HAUT_E2" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "O:0/0", sym: "M1_MONTER" }
+          ]
+        },
+        {
+          comment: "Rung 0002 : En haut (E2 pressé) et voie optique libre (EX < 600) -> Démarre le temporisateur d'attente T4:0 (3.0 s).",
+          conditions: [
+            { type: "XIC", addr: "I:1/1", sym: "FDC_HAUT_E2" },
+            { type: "LES", addr: "N7:0", sym: "VOIE_LIBRE_EX", param: 600 }
+          ],
+          outputs: [
+            { type: "OTU", addr: "B3:0/0", sym: "FIN_MONTEE" },
+            { type: "TON", addr: "T4:0", sym: "TEMPO_OUVERT", param: 3.0 }
+          ]
+        },
+        {
+          comment: "Rung 0003 : Quand le Timer T4:0 a fini (T4:0/DN) -> Lance la fermeture (B3:0/1 <L>).",
+          conditions: [
+            { type: "XIC", addr: "T4:0/DN", sym: "TEMPO_FINIE" }
+          ],
+          outputs: [
+            { type: "OTL", addr: "B3:0/1", sym: "ORDRE_DESCENDRE" }
+          ]
+        },
+        {
+          comment: "Rung 0004 : Descente Barrière M1 Gauche (O:0/1) jusqu'au fin de course bas E3 (I:1/2) tant que EX < 600.",
+          conditions: [
+            { type: "XIC", addr: "B3:0/1", sym: "ORDRE_DESCENDRE" },
+            { type: "LES", addr: "N7:0", sym: "SANS_OBSTACLE", param: 600 },
+            { type: "XIO", addr: "I:1/2", sym: "FDC_BAS_E3" }
+          ],
+          outputs: [
+            { type: "OTE", addr: "O:0/1", sym: "M1_DESCENDRE" }
+          ]
+        },
+        {
+          comment: "Rung 0005 : Fin de course bas E3 (I:1/2) atteint -> Coupe la descente et éteint le feu M2.",
+          conditions: [
+            { type: "XIC", addr: "I:1/2", sym: "FDC_BAS_E3" }
+          ],
+          outputs: [
+            { type: "OTU", addr: "B3:0/1", sym: "STOP_DESCENTE" },
+            { type: "OTU", addr: "O:0/2", sym: "ETEINDRE_FEU" }
+          ]
+        }
+      ]
+    };
+
+    // =========================================================================
+    // 3. MOTEUR D'EXÉCUTION DU SCAN LADDER (PLC SCAN CYCLE)
+    // =========================================================================
+    function evaluateCondition(cond, rungIndex, condIndex, rungConductingSoFar) {
+      if (cond.type === "XIC") {
+        const state = getBitValue(cond.addr);
+        cond._energized = state;
+        return rungConductingSoFar && state;
+      }
+      if (cond.type === "XIO") {
+        const state = !getBitValue(cond.addr);
+        cond._energized = state;
+        return rungConductingSoFar && state;
+      }
+      if (cond.type === "OSR") {
+        const key = `${rungIndex}_${condIndex}_${cond.addr}`;
+        const prev = Boolean(osrMemory[key]);
+        const fired = rungConductingSoFar && !prev;
+        osrMemory[key] = rungConductingSoFar;
+        cond._energized = fired;
+        setBitValue(cond.addr, fired);
+        return fired;
+      }
+      if (cond.type === "LES") {
+        const val = analogN7[0];
+        const state = val < Number(cond.param || 500);
+        cond._energized = state;
+        return rungConductingSoFar && state;
+      }
+      if (cond.type === "GRT") {
+        const val = analogN7[0];
+        const state = val > Number(cond.param || 500);
+        cond._energized = state;
+        return rungConductingSoFar && state;
+      }
+      return rungConductingSoFar;
+    }
+
+    function executeOutputInstruction(out, rungTrue, dtSec) {
+      out._energized = rungTrue;
+      if (out.type === "OTE") {
+        setBitValue(out.addr, rungTrue);
+      } else if (out.type === "OTL") {
+        if (rungTrue) setBitValue(out.addr, true);
+      } else if (out.type === "OTU") {
+        if (rungTrue) setBitValue(out.addr, false);
+      } else if (out.type === "TON") {
+        const tIdx = out.addr === "T4:1" ? 1 : 0;
+        const timer = timersT4[tIdx];
+        timer.pre = Number(out.param || 2.0);
+        timer.en = rungTrue;
+        if (rungTrue) {
+          timer.acc = Math.min(timer.pre, timer.acc + dtSec);
+          timer.dn = timer.acc >= timer.pre;
+        } else {
+          timer.acc = 0.0;
+          timer.dn = false;
+        }
+        out._energized = timer.dn;
+      } else if (out.type === "CTU") {
+        const cIdx = out.addr === "C5:1" ? 1 : 0;
+        const cnt = countersC5[cIdx];
+        cnt.pre = Number(out.param || 3);
+        if (rungTrue && !cnt.prevCu) {
+          cnt.acc += 1;
+          if (cnt.acc >= cnt.pre) cnt.dn = true;
+        }
+        cnt.prevCu = rungTrue;
+        out._energized = cnt.dn;
+      }
+    }
+
+    let lastScanTime = performance.now();
+    setInterval(() => {
+      const now = performance.now();
+      const dtSec = (now - lastScanTime) / 1000;
+      lastScanTime = now;
+
+      if (plcRunMode) {
+        ladderRungs.forEach((rung, rIdx) => {
+          let power = true;
+          rung.conditions.forEach((cond, cIdx) => {
+            power = evaluateCondition(cond, rIdx, cIdx, power);
+          });
+          rung._energized = power;
+          rung.outputs.forEach((out) => {
+            executeOutputInstruction(out, power, dtSec);
+          });
+        });
+      } else {
+        // En mode PROG/STOP, on coupe les sorties physiques O:0
+        for (let i = 0; i < 8; i++) outputsO0[i] = false;
+      }
+
+      updateLiveHighlights();
+      updateDataTreeUI();
+    }, 45);
+
+    // =========================================================================
+    // 4. RENDU GRAPHIQUE DES BARREAUX LADDER (RSLOGIX 500)
+    // =========================================================================
+    function formatAddrParts(addr) {
+      const found = ADDRESS_CATALOG.find((a) => a.addr === addr);
+      if (found) return { top: found.top, bot: found.bot };
+      if (addr.includes("/")) {
+        const [top, bot] = addr.split("/");
+        return { top, bot };
+      }
+      return { top: addr, bot: "0" };
+    }
+
+    function renderLadderRungs() {
+      const container = document.getElementById("rungsContainer");
+      container.innerHTML = "";
+
+      ladderRungs.forEach((rung, rIdx) => {
+        const rungDiv = document.createElement("div");
+        rungDiv.className = "rung-container" +
+          (rIdx === selectedRungIdx ? " selected" : "") +
+          (rung._energized ? " energized" : "");
+        rungDiv.id = `rung_${rIdx}`;
+
+        // Numéro de barreau 0000, 0001...
+        const gutter = document.createElement("div");
+        gutter.className = "rung-number-gutter";
+        gutter.textContent = String(rIdx).padStart(4, "0");
+        gutter.onclick = () => {
+          selectedRungIdx = rIdx;
+          document.getElementById("selectedRungLabel").textContent = `Rung ${String(rIdx).padStart(4, "0")}`;
+          renderLadderRungs();
+        };
+
+        const body = document.createElement("div");
+        body.className = "rung-body";
+
+        // Commentaire sur fond jaune RSLogix
+        const commentInput = document.createElement("input");
+        commentInput.type = "text";
+        commentInput.className = "rung-comment";
+        commentInput.value = rung.comment || "";
+        commentInput.onchange = (e) => { rung.comment = e.target.value; };
+        body.appendChild(commentInput);
+
+        // Zone du fil et des instructions
+        const wireArea = document.createElement("div");
+        wireArea.className = "rung-wire-area";
+
+        const wireLine = document.createElement("div");
+        wireLine.className = "rung-wire-line";
+        wireArea.appendChild(wireLine);
+
+        // Côté gauche : Contacts / Conditions
+        const condSide = document.createElement("div");
+        condSide.className = "conditions-side";
+
+        rung.conditions.forEach((cond, cIdx) => {
+          const el = createLadderElemDOM(cond, "cond", rIdx, cIdx);
+          condSide.appendChild(el);
+        });
+
+        // Côté droit : Bobines / Timers / Compteurs en parallèle
+        const outSide = document.createElement("div");
+        outSide.className = "outputs-side";
+
+        rung.outputs.forEach((out, oIdx) => {
+          const el = createLadderElemDOM(out, "out", rIdx, oIdx);
+          outSide.appendChild(el);
+        });
+
+        wireArea.appendChild(condSide);
+        wireArea.appendChild(outSide);
+        body.appendChild(wireArea);
+
+        rungDiv.appendChild(gutter);
+        rungDiv.appendChild(body);
+        container.appendChild(rungDiv);
+      });
+    }
+
+    function createLadderElemDOM(item, side, rIdx, eIdx) {
+      const elem = document.createElement("div");
+      elem.className = "ladder-elem" + (item._energized ? " true-state" : "");
+      elem.id = `elem_${side}_${rIdx}_${eIdx}`;
+      elem.onclick = (e) => {
+        e.stopPropagation();
+        openEditModal(side, rIdx, eIdx);
+      };
+
+      const parts = formatAddrParts(item.addr);
+
+      if (item.type === "TON" || item.type === "CTU" || item.type === "LES" || item.type === "GRT") {
+        let title = item.type;
+        let detail1 = `Source: ${item.addr}`;
+        let detail2 = `Preset: ${item.param || 2.0}`;
+        if (item.type === "TON") {
+          title = "TON — Timer On Delay";
+          detail1 = `Timer: ${item.addr}`;
+          detail2 = `Preset: ${item.param || 2.0} s`;
+        } else if (item.type === "CTU") {
+          title = "CTU — Count Up";
+          detail1 = `Counter: ${item.addr}`;
+          detail2 = `Preset: ${item.param || 3}`;
+        } else if (item.type === "LES") {
+          title = "LES — Less Than (<)";
+          detail1 = `EX (N7:0) < ${item.param || 600}`;
+          detail2 = `Actuel: ${analogN7[0]}`;
+        } else if (item.type === "GRT") {
+          title = "GRT — Greater Than (>)";
+          detail1 = `EX (N7:0) > ${item.param || 500}`;
+          detail2 = `Actuel: ${analogN7[0]}`;
+        }
+
+        elem.innerHTML = `
+          <div class="sym-tag">${item.sym || item.type}</div>
+          <div class="ab-block-box">
+            <div class="ab-block-title">${title}</div>
+            <div>${detail1}</div>
+            <div id="dynDetail_${side}_${rIdx}_${eIdx}">${detail2}</div>
+          </div>
+        `;
+      } else {
+        let graphic = "—] [—";
+        if (item.type === "XIO") graphic = "—]/[—";
+        else if (item.type === "OSR") graphic = "[ OSR ]";
+        else if (item.type === "OTE") graphic = "—( )—";
+        else if (item.type === "OTL") graphic = "—(L)—";
+        else if (item.type === "OTU") graphic = "—(U)—";
+
+        elem.innerHTML = `
+          <div class="sym-tag">${item.sym || item.addr}</div>
+          <div class="ab-addr-top">${parts.top}</div>
+          <div class="ab-graphic">${graphic}</div>
+          <div class="ab-bit-bot">${parts.bot}</div>
+        `;
+      }
+      return elem;
+    }
+
+    function updateLiveHighlights() {
+      ladderRungs.forEach((rung, rIdx) => {
+        const rEl = document.getElementById(`rung_${rIdx}`);
+        if (rEl) {
+          rEl.className = "rung-container" +
+            (rIdx === selectedRungIdx ? " selected" : "") +
+            (rung._energized ? " energized" : "");
+        }
+        rung.conditions.forEach((c, cIdx) => {
+          const el = document.getElementById(`elem_cond_${rIdx}_${cIdx}`);
+          if (el) {
+            const visualActive = c.type === "XIC" ? getBitValue(c.addr) :
+                                 c.type === "XIO" ? !getBitValue(c.addr) : Boolean(c._energized);
+            el.className = "ladder-elem" + (visualActive ? " true-state" : "");
+          }
+        });
+        rung.outputs.forEach((o, oIdx) => {
+          const el = document.getElementById(`elem_out_${rIdx}_${oIdx}`);
+          if (el) {
+            const bitActive = (o.type === "OTE" || o.type === "OTL" || o.type === "OTU")
+              ? getBitValue(o.addr)
+              : Boolean(o._energized);
+            el.className = "ladder-elem" + (bitActive ? " true-state" : "");
+          }
+          if (o.type === "TON") {
+            const dEl = document.getElementById(`dynDetail_out_${rIdx}_${oIdx}`);
+            const t = timersT4[o.addr === "T4:1" ? 1 : 0];
+            if (dEl && t) dEl.textContent = `Pre: ${t.pre}s | Acc: ${t.acc.toFixed(1)}s`;
+          } else if (o.type === "CTU") {
+            const dEl = document.getElementById(`dynDetail_out_${rIdx}_${oIdx}`);
+            const c = countersC5[o.addr === "C5:1" ? 1 : 0];
+            if (dEl && c) dEl.textContent = `Pre: ${c.pre} | Acc: ${c.acc}`;
+          }
+        });
+      });
+    }
+
+    // =========================================================================
+    // 5. ARBRE DATA FILES À GAUCHE & ÉDITION DES INSTRUCTIONS
+    // =========================================================================
+    function initDataTreeUI() {
+      const inDiv = document.getElementById("treeInputs");
+      inDiv.innerHTML = "";
+      for (let i = 0; i < 8; i++) {
+        const row = document.createElement("div");
+        row.className = "tree-item";
+        row.onclick = () => { forceInputsI1[i] = !forceInputsI1[i]; };
+        row.innerHTML = `
+          <span>I:1/${i} <b>(Entrée E${i + 1})</b></span>
+          <span class="bit-badge" id="badge_I_${i}">0</span>
+        `;
+        inDiv.appendChild(row);
+      }
+
+      const outDiv = document.getElementById("treeOutputs");
+      outDiv.innerHTML = "";
+      for (let i = 0; i < 8; i++) {
+        const row = document.createElement("div");
+        row.className = "tree-item";
+        row.onclick = () => { outputsO0[i] = !outputsO0[i]; };
+        row.innerHTML = `
+          <span>${OUTPUT_NAMES[i]}</span>
+          <span class="bit-badge" id="badge_O_${i}">0</span>
+        `;
+        outDiv.appendChild(row);
+      }
+
+      const bDiv = document.getElementById("treeBinary");
+      bDiv.innerHTML = "";
+      for (let i = 0; i < 5; i++) {
+        const row = document.createElement("div");
+        row.className = "tree-item";
+        row.onclick = () => { binaryB3[i] = !binaryB3[i]; };
+        row.innerHTML = `
+          <span>Bit Interne <b>B3:0/${i}</b></span>
+          <span class="bit-badge" id="badge_B_${i}">0</span>
+        `;
+        bDiv.appendChild(row);
+      }
+
+      const tDiv = document.getElementById("treeTimers");
+      tDiv.innerHTML = `
+        <div class="tree-item" onclick="timersT4[0].acc=0;timersT4[0].dn=false;">
+          <span>Timer <b>T4:0</b> (Clic=Reset)</span>
+          <span class="bit-badge" id="badge_T4_0">0.0s</span>
+        </div>
+        <div class="tree-item" onclick="countersC5[0].acc=0;countersC5[0].dn=false;">
+          <span>Counter <b>C5:0</b> (Clic=Reset)</span>
+          <span class="bit-badge" id="badge_C5_0">0</span>
+        </div>
+      `;
+    }
+
+    function updateDataTreeUI() {
+      for (let i = 0; i < 8; i++) {
+        const vIn = hwInputsI1[i] || forceInputsI1[i];
+        const bIn = document.getElementById(`badge_I_${i}`);
+        if (bIn) { bIn.textContent = vIn ? "1" : "0"; bIn.className = "bit-badge" + (vIn ? " on" : ""); }
+
+        const vOut = outputsO0[i];
+        const bOut = document.getElementById(`badge_O_${i}`);
+        if (bOut) { bOut.textContent = vOut ? "1" : "0"; bOut.className = "bit-badge" + (vOut ? " on" : ""); }
+      }
+      for (let i = 0; i < 5; i++) {
+        const vB = binaryB3[i];
+        const bB = document.getElementById(`badge_B_${i}`);
+        if (bB) { bB.textContent = vB ? "1" : "0"; bB.className = "bit-badge" + (vB ? " on" : ""); }
+      }
+      const bT = document.getElementById("badge_T4_0");
+      if (bT) {
+        bT.textContent = `${timersT4[0].acc.toFixed(1)}s`;
+        bT.className = "bit-badge" + (timersT4[0].dn ? " on" : "");
+      }
+      const bC = document.getElementById("badge_C5_0");
+      if (bC) {
+        bC.textContent = `${countersC5[0].acc}/${countersC5[0].pre}`;
+        bC.className = "bit-badge" + (countersC5[0].dn ? " on" : "");
+      }
+      document.getElementById("n7_0_val").textContent = analogN7[0];
+      document.getElementById("n7_1_val").textContent = analogN7[1];
+    }
+
+    function setPlcRun(run) {
+      plcRunMode = run;
+      const modeBox = document.getElementById("plcModeBox");
+      const spinner = document.getElementById("ladderSpinner");
+      const runCell = document.getElementById("runStateCell");
+      if (run) {
+        modeBox.textContent = "REMOTE RUN";
+        modeBox.className = "rs-box run-mode";
+        spinner.className = "ladder-spinner spinning";
+        runCell.textContent = "RUN";
+        runCell.style.background = "#00ff00";
+      } else {
+        modeBox.textContent = "REMOTE PROG";
+        modeBox.className = "rs-box prog-mode";
+        spinner.className = "ladder-spinner";
+        runCell.textContent = "PROG";
+        runCell.style.background = "#00ffff";
+      }
+    }
+
+    function loadPreset(name) {
+      const template = PRESET_PROGRAMS[name] || PRESET_PROGRAMS.osr_toggle;
+      ladderRungs = JSON.parse(JSON.stringify(template));
+      selectedRungIdx = 0;
+      for (let i = 0; i < 8; i++) { outputsO0[i] = false; binaryB3[i] = false; }
+      timersT4[0].acc = 0; timersT4[0].dn = false;
+      countersC5[0].acc = 0; countersC5[0].dn = false;
+      renderLadderRungs();
+    }
+
+    function addConditionToSelectedRung(type) {
+      const rung = ladderRungs[selectedRungIdx];
+      if (!rung) return;
+      const defaultAddr = (type === "LES" || type === "GRT") ? "N7:0" : (type === "OSR" ? "B3:0/4" : "I:1/0");
+      rung.conditions.push({ type, addr: defaultAddr, sym: type + "_NEW", param: 500 });
+      renderLadderRungs();
+    }
+
+    function addOutputToSelectedRung(type) {
+      const rung = ladderRungs[selectedRungIdx];
+      if (!rung) return;
+      const defaultAddr = type === "TON" ? "T4:0" : type === "CTU" ? "C5:0" : "O:0/0";
+      rung.outputs.push({ type, addr: defaultAddr, sym: type + "_OUT", param: 2.0 });
+      renderLadderRungs();
+    }
+
+    function addNewRung() {
+      ladderRungs.push({
+        comment: `Rung ${String(ladderRungs.length).padStart(4, "0")} : Nouveau barreau Ladder`,
+        conditions: [{ type: "XIC", addr: "I:1/0", sym: "BTN_E1" }],
+        outputs: [{ type: "OTE", addr: "O:0/0", sym: "MOTEUR_M1" }]
+      });
+      selectedRungIdx = ladderRungs.length - 1;
+      renderLadderRungs();
+    }
+
+    function deleteSelectedRung() {
+      if (ladderRungs.length <= 1) return;
+      ladderRungs.splice(selectedRungIdx, 1);
+      if (selectedRungIdx >= ladderRungs.length) selectedRungIdx = ladderRungs.length - 1;
+      renderLadderRungs();
+    }
+
+    // --- Modale d'édition d'une instruction ---
+    let editingTarget = null;
+    function openEditModal(side, rIdx, eIdx) {
+      const rung = ladderRungs[rIdx];
+      const item = side === "cond" ? rung.conditions[eIdx] : rung.outputs[eIdx];
+      editingTarget = { side, rIdx, eIdx, item };
+
+      document.getElementById("editSymInput").value = item.sym || "";
+
+      const typeSel = document.getElementById("editTypeSelect");
+      if (side === "cond") {
+        typeSel.innerHTML = `
+          <option value="XIC">—] [— XIC (Contact Normalement Ouvert)</option>
+          <option value="XIO">—]/[— XIO (Contact Normalement Fermé)</option>
+          <option value="OSR">—[OSR]— One-Shot Rising (Front Montant)</option>
+          <option value="LES">—[LES]— Comparateur Analogique EX &lt; Seuil</option>
+          <option value="GRT">—[GRT]— Comparateur Analogique EX &gt; Seuil</option>
+        `;
+      } else {
+        typeSel.innerHTML = `
+          <option value="OTE">—( )— OTE (Bobine Normale)</option>
+          <option value="OTL">—(L)— OTL (Bobine Latch / Maintien Set)</option>
+          <option value="OTU">—(U)— OTU (Bobine Unlatch / Reset)</option>
+          <option value="TON">—[TON]— Temporisateur On-Delay (T4:0)</option>
+          <option value="CTU">—[CTU]— Compteur Count-Up (C5:0)</option>
+        `;
+      }
+      typeSel.value = item.type;
+
+      const addrSel = document.getElementById("editAddrSelect");
+      addrSel.innerHTML = "";
+      ADDRESS_CATALOG.forEach((a) => {
+        const opt = document.createElement("option");
+        opt.value = a.addr;
+        opt.textContent = a.label;
+        if (a.addr === item.addr) opt.selected = true;
+        addrSel.appendChild(opt);
+      });
+
+      document.getElementById("editParamInput").value = item.param !== undefined ? item.param : 2.0;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").style.display = "none";
+      editingTarget = null;
+    }
+
+    function saveModalChanges() {
+      if (!editingTarget) return;
+      const { item } = editingTarget;
+      item.sym = document.getElementById("editSymInput").value.trim() || item.addr;
+      item.type = document.getElementById("editTypeSelect").value;
+      item.addr = document.getElementById("editAddrSelect").value;
+      item.param = Number(document.getElementById("editParamInput").value);
+      closeModal();
+      renderLadderRungs();
+    }
+
+    function deleteCurrentElement() {
+      if (!editingTarget) return;
+      const { side, rIdx, eIdx } = editingTarget;
+      const list = side === "cond" ? ladderRungs[rIdx].conditions : ladderRungs[rIdx].outputs;
+      if (list.length > 1) {
+        list.splice(eIdx, 1);
+      }
+      closeModal();
+      renderLadderRungs();
+    }
+
+    // =========================================================================
+    // 6. COMMUNICATION WEB SERIAL AVEC LE 30 402 (9600 BAUDS 8N1)
+    // =========================================================================
+    const CMD_ONLY_DIGITAL = 0xC1;
+    const CMD_READ_EX = 0xC5;
+    const CMD_READ_EY = 0xC9;
+
+    let port = null, reader = null, writer = null;
+    let isSerialConnected = false, isPolling = false, toggleAnalog = false;
+
+    function buildMotorByteFromO0() {
+      // Pour chaque moteur M1..M4 : O:0/(2m) = Droite (2), O:0/(2m+1) = Gauche (1)
+      let byte = 0;
+      for (let m = 0; m < 4; m++) {
+        const right = outputsO0[m * 2];
+        const left = outputsO0[m * 2 + 1];
+        let code = 0;
+        if (right && !left) code = 2;
+        else if (left && !right) code = 1;
+        else if (right && left) code = 3;
+        byte |= (code << (m * 2));
+      }
+      return byte;
+    }
+
+    async function toggleSerialConnection() {
+      if (isSerialConnected) await disconnectSerial();
+      else await connectSerial();
+    }
+
+    async function connectSerial() {
+      if (!("serial" in navigator)) {
+        alert("Utilisez Google Chrome ou Microsoft Edge pour connecter le câble USB-Série en Web Serial.");
+        return;
+      }
+      try {
+        port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: "none", flowControl: "none" });
+        writer = port.writable.getWriter();
+        reader = port.readable.getReader();
+        isSerialConnected = true;
+        document.getElementById("serialBox").textContent = "ONLINE 30402";
+        document.getElementById("serialBox").className = "rs-box serial-ok";
+        document.getElementById("btnConnect").textContent = "🔌 Déconnecter";
+        startSerialPolling();
+      } catch (err) {
+        if (err.name !== "NotFoundError") alert("Erreur port COM : " + err.message);
+        await disconnectSerial();
+      }
+    }
+
+    async function disconnectSerial() {
+      isPolling = false;
+      try { if (writer) { await writer.write(new Uint8Array([CMD_ONLY_DIGITAL, 0x00])); writer.releaseLock(); } } catch (_) {}
+      try { if (reader) { await reader.cancel(); reader.releaseLock(); } } catch (_) {}
+      try { if (port) await port.close(); } catch (_) {}
+      writer = null; reader = null; port = null;
+      isSerialConnected = false;
+      for (let i = 0; i < 8; i++) hwInputsI1[i] = false;
+      document.getElementById("serialBox").textContent = "SIMULATION";
+      document.getElementById("serialBox").className = "rs-box";
+      document.getElementById("btnConnect").textContent = "🔌 Connecter COM";
+    }
+
+    async function readBytesWithTimeout(expectedCount, timeoutMs = 150) {
+      const buffer = new Uint8Array(expectedCount);
+      let offset = 0;
+      const start = performance.now();
+      while (offset < expectedCount) {
+        if (performance.now() - start > timeoutMs) return null;
+        const timeoutPromise = new Promise((r) => setTimeout(() => r({ timeout: true }), timeoutMs));
+        const res = await Promise.race([reader.read(), timeoutPromise]);
+        if (res.timeout || res.done) return null;
+        if (res.value) {
+          for (let i = 0; i < res.value.length && offset < expectedCount; i++) {
+            buffer[offset++] = res.value[i];
+          }
+        }
+      }
+      return buffer;
+    }
+
+    async function startSerialPolling() {
+      if (isPolling) return;
+      isPolling = true;
+      while (isPolling && isSerialConnected && writer && reader) {
+        try {
+          const chIdx = toggleAnalog ? 0 : 1;
+          toggleAnalog = !toggleAnalog;
+          const cmd = chIdx === 0 ? CMD_READ_EX : CMD_READ_EY;
+          await writer.write(new Uint8Array([cmd, buildMotorByteFromO0()]));
+          const resp = await readBytesWithTimeout(3, 150);
+          if (resp && resp.length === 3) {
+            for (let i = 0; i < 8; i++) {
+              hwInputsI1[i] = Boolean(resp[0] & (1 << i));
+            }
+            analogN7[chIdx] = (resp[1] << 8) | resp[2];
+            document.getElementById(chIdx === 0 ? "exRange" : "eyRange").value = analogN7[chIdx];
+          }
+        } catch (err) {
+          if (err.name === "NetworkError" || err.name === "InvalidStateError") {
+            await disconnectSerial();
+            break;
+          }
+        }
+        await new Promise((r) => setTimeout(r, 45));
+      }
+    }
+
+    // Initialisation au démarrage
+    initDataTreeUI();
+    loadPreset("osr_toggle");
+  </script>
+</body>
+</html>
