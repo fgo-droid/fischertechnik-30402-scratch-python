@@ -101,6 +101,11 @@
       this.plotterPaused = false;
       this.thermostatStates = [false, false, false, false];
 
+      // État du Jumeau Numérique Prédictif (Maintenance Prédictive 4.0)
+      this.twinBaselineMs = {}; // Clé "M1_RIGHT_E2" -> durée nominale en ms
+      this.twinHealthScore = 100;
+      this.twinDiagnostic = "CALIBRATION";
+
       this._toggleAnalog = false;
 
       // Boucle d'échantillonnage du Plotter (même en mode hors-ligne pour tester)
@@ -445,6 +450,48 @@
               MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
               DEADBAND: { type: Scratch.ArgumentType.NUMBER, defaultValue: 20 },
             },
+          },
+          "---",
+          {
+            blockType: Scratch.BlockType.LABEL,
+            text: "🔮 Jumeau Numérique Prédictif (Industrie 4.0)",
+          },
+          {
+            opcode: "runPredictiveTwinMove",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "déplacer [MOTOR] vers [DIR] jusqu'à [INPUT] avec surveillance prédictive",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
+              DIR: { type: Scratch.ArgumentType.STRING, menu: "directionMenu", defaultValue: "RIGHT" },
+              INPUT: { type: Scratch.ArgumentType.STRING, menu: "inputMenu", defaultValue: "E2" },
+            },
+          },
+          {
+            opcode: "resetPredictiveTwin",
+            blockType: Scratch.BlockType.COMMAND,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "réinitialiser l'apprentissage du Jumeau Numérique",
+          },
+          {
+            opcode: "getTwinHealthScore",
+            blockType: Scratch.BlockType.REPORTER,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "santé mécanique du Jumeau Numérique (%)",
+          },
+          {
+            opcode: "getTwinDiagnostic",
+            blockType: Scratch.BlockType.REPORTER,
+            color1: COLOR_REG_1,
+            color2: COLOR_REG_2,
+            color3: COLOR_REG_3,
+            text: "diagnostic prédictif (NOMINAL / FRICTION / BLOCAGE)",
           },
           "---",
           {
@@ -1317,6 +1364,66 @@
 
     getGrafcetStep() {
       return this.grafcetStep;
+    }
+
+    // --- Sous-groupe 4 : Jumeau Numérique Prédictif (Maintenance Prédictive 4.0) ---
+
+    async runPredictiveTwinMove(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const dir = this._parseDirection(args.DIR);
+      const key = this._normalizeInputName(args.INPUT);
+      const moveId = `M${idx + 1}_${dir}_${key}`;
+
+      const baseline = this.twinBaselineMs[moveId];
+      // Si déjà calibré, coupe automatiquement à 160 % du temps nominal (Auto-Trip anti-casse)
+      const maxAllowedMs = baseline ? Math.max(800, baseline * 1.6) : 8000;
+
+      const start = performance.now();
+      this.motors[idx] = dir;
+
+      let jammed = false;
+      while (!this.inputs[key]) {
+        if (performance.now() - start >= maxAllowedMs) {
+          jammed = true;
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+      this.motors[idx] = MOTOR_STOP;
+      const elapsed = performance.now() - start;
+
+      if (jammed) {
+        this.twinHealthScore = 0;
+        this.twinDiagnostic = "BLOCAGE CRITIQUE";
+      } else if (!baseline) {
+        this.twinBaselineMs[moveId] = elapsed;
+        this.twinHealthScore = 100;
+        this.twinDiagnostic = `CALIBRÉ (${Math.round(elapsed)} ms)`;
+      } else {
+        const driftPct = ((elapsed - baseline) / baseline) * 100;
+        this.twinHealthScore = Math.max(0, Math.min(100, Math.round(100 - Math.max(0, driftPct) * 1.5)));
+        if (driftPct > 25) {
+          this.twinDiagnostic = `FRICTION (+${Math.round(driftPct)}%)`;
+        } else if (driftPct < -25) {
+          this.twinDiagnostic = `GLISSEMENT (${Math.round(driftPct)}%)`;
+        } else {
+          this.twinDiagnostic = `NOMINAL (${driftPct >= 0 ? "+" : ""}${Math.round(driftPct)}%)`;
+        }
+      }
+    }
+
+    resetPredictiveTwin() {
+      this.twinBaselineMs = {};
+      this.twinHealthScore = 100;
+      this.twinDiagnostic = "CALIBRATION";
+    }
+
+    getTwinHealthScore() {
+      return this.twinHealthScore;
+    }
+
+    getTwinDiagnostic() {
+      return this.twinDiagnostic;
     }
   }
 

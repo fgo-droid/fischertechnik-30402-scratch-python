@@ -560,6 +560,26 @@
         <canvas id="miniPlotter" width="350" height="85" style="width:100%; background:#090d16; border-radius:6px; display:block;"></canvas>
       </div>
 
+      <div class="panel-card">
+        <h3>
+          <span>🔮 Jumeau Numérique Prédictif 4.0</span>
+          <button onclick="resetDigitalTwin()" style="padding:2px 6px; font-size:10.5px; background:#e2e8f0; color:#1e293b;">🔄 Recalibrer</button>
+        </h3>
+        <div style="font-size:11.5px; display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>Santé Mécanique : <b id="twinHealthLabel" style="color:#16a34a;">100 %</b></span>
+          <span id="twinDiagBadge" style="font-weight:bold; color:#0f766e;">🧠 Calibration</span>
+        </div>
+        <div style="width:100%; height:10px; background:#e2e8f0; border-radius:99px; overflow:hidden; margin-bottom:6px;">
+          <div id="twinGhostBar" style="width:0%; height:100%; background:#16a34a; transition:width 0.05s;"></div>
+        </div>
+        <div style="font-size:11px; color:#475569; display:flex; justify-content:space-between; align-items:center;">
+          <span id="twinTimingInfo">Attendu : -- s | Réel : 0.0 s</span>
+          <label style="display:flex; align-items:center; gap:3px; cursor:pointer;" title="Coupe automatiquement les moteurs si une étape motorisée dépasse 160 % de sa durée nominale apprise">
+            <input type="checkbox" id="twinAutoTripChk" checked> Auto-Stop Blocage
+          </label>
+        </div>
+      </div>
+
       <div class="spy-box" id="spyBox">
         📤 TX : [0xC5, 0b00000000] (M4..M1)<br>
         📥 RX : [0b00000000]       (E8..E1)
@@ -612,6 +632,17 @@
     let activeStepIndex = 0;
     let stepStartTime = performance.now();
     let grafcetSteps = [];
+
+    // État du Jumeau Numérique Prédictif (Maintenance Prédictive 4.0)
+    let twinStepBaselinesSec = {}; // index d'étape -> durée nominale apprise en secondes
+    let twinHealth = 100;
+    let twinStatusText = "🧠 Calibration";
+
+    function resetDigitalTwin() {
+      twinStepBaselinesSec = {};
+      twinHealth = 100;
+      twinStatusText = "🧠 Calibration";
+    }
 
     const PRESETS = {
       vending: [
@@ -830,7 +861,40 @@
 
       if (plcRunning && grafcetSteps.length > 0) {
         const currentStep = grafcetSteps[activeStepIndex];
+        const hasMotorAction = currentStep && currentStep.actions.some((a) => a !== 0);
+        const baselineSec = twinStepBaselinesSec[activeStepIndex];
+        const autoTrip = document.getElementById("twinAutoTripChk")?.checked;
+
+        // Surveillance temps réel de dérive / blocage sur les étapes motorisées
+        if (hasMotorAction && baselineSec && elapsedSec > baselineSec * 1.65 && autoTrip) {
+          twinHealth = 0;
+          twinStatusText = `🚨 BLOCAGE ÉTAPE ${activeStepIndex} !`;
+          playBeep(280, 400);
+          stopPlc();
+          document.getElementById("operatorMessage").textContent =
+            `🚨 ARRÊT PRÉDICTIF : Blocage mécanique détecté à l'Étape ${activeStepIndex} (${elapsedSec.toFixed(1)}s > max ${(baselineSec * 1.6).toFixed(1)}s)`;
+          return;
+        }
+
         if (currentStep && evaluateTransition(currentStep.transition, elapsedSec)) {
+          // Apprentissage ou comparaison du temps d'étape motorisée au moment du franchissement
+          if (hasMotorAction && elapsedSec >= 0.15) {
+            if (!baselineSec) {
+              twinStepBaselinesSec[activeStepIndex] = elapsedSec;
+              twinHealth = 100;
+              twinStatusText = `✅ Étape ${activeStepIndex} calibrée (${elapsedSec.toFixed(2)}s)`;
+            } else {
+              const driftPct = ((elapsedSec - baselineSec) / baselineSec) * 100;
+              twinHealth = Math.max(0, Math.min(100, Math.round(100 - Math.max(0, driftPct) * 1.5)));
+              if (driftPct > 25) {
+                twinStatusText = `⚠️ Friction (+${Math.round(driftPct)}%)`;
+                playBeep(440, 180);
+              } else {
+                twinStatusText = `🟢 Nominal (${driftPct >= 0 ? "+" : ""}${Math.round(driftPct)}%)`;
+              }
+            }
+          }
+
           const targetIdx = currentStep.transition.nextStep !== undefined
             ? Number(currentStep.transition.nextStep)
             : (activeStepIndex + 1) % grafcetSteps.length;
@@ -1289,6 +1353,32 @@
           ctx.strokeStyle = "#4ade80"; ctx.lineWidth = 2; ctx.beginPath();
           plotHistory.forEach((p, i) => { if (i === 0) ctx.moveTo(0, yOf(p.ex)); else ctx.lineTo(i * dx, yOf(p.ex)); });
           ctx.stroke();
+        }
+      }
+
+      // Mise à jour du panneau Jumeau Numérique Prédictif 4.0
+      const baseSec = twinStepBaselinesSec[activeStepIndex];
+      const ghostBar = document.getElementById("twinGhostBar");
+      const healthLbl = document.getElementById("twinHealthLabel");
+      const diagBadge = document.getElementById("twinDiagBadge");
+      const timingInfo = document.getElementById("twinTimingInfo");
+
+      if (ghostBar && healthLbl && diagBadge && timingInfo) {
+        healthLbl.textContent = `${twinHealth} %`;
+        healthLbl.style.color = twinHealth > 70 ? "#16a34a" : twinHealth > 30 ? "#d97706" : "#dc2626";
+        diagBadge.textContent = twinStatusText;
+
+        if (plcRunning && baseSec) {
+          const ratioPct = Math.min(100, (elapsedSec / baseSec) * 100);
+          ghostBar.style.width = `${ratioPct}%`;
+          ghostBar.style.background = elapsedSec <= baseSec * 1.2 ? "#16a34a" : elapsedSec <= baseSec * 1.5 ? "#d97706" : "#dc2626";
+          timingInfo.textContent = `Attendu : ${baseSec.toFixed(2)}s | Réel : ${elapsedSec.toFixed(2)}s`;
+        } else {
+          ghostBar.style.width = plcRunning ? "35%" : "0%";
+          ghostBar.style.background = "#38bdf8";
+          timingInfo.textContent = baseSec
+            ? `Attendu : ${baseSec.toFixed(2)}s | Réel : ${elapsedSec.toFixed(2)}s`
+            : `Apprentissage au 1er passage (${elapsedSec.toFixed(1)}s)`;
         }
       }
 
