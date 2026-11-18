@@ -62,6 +62,8 @@
 
       // État des 4 sorties moteurs M1..M4 (2 bits chacune)
       this.motors = [MOTOR_STOP, MOTOR_STOP, MOTOR_STOP, MOTOR_STOP];
+      // Mode clignoteur non-bloquant par sortie (0 = fixe/off, 250 = rapide, 450 = normal, 800 = lent en ms)
+      this.blinkPeriodsMs = [0, 0, 0, 0];
 
       // État des 8 entrées digitales E1..E8 + Compteurs d'impulsions (fronts montants)
       this.digitalByte = 0;
@@ -184,6 +186,42 @@
             arguments: {
               MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
               STATE: { type: Scratch.ArgumentType.STRING, menu: "onOffMenu", defaultValue: "ON" },
+            },
+          },
+          {
+            opcode: "setOutputFromBoolean",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "mettre la sortie [MOTOR] (lampe / vanne) à [COND]",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "2" },
+              COND: { type: Scratch.ArgumentType.BOOLEAN },
+            },
+          },
+          {
+            opcode: "blinkOutputWhileBoolean",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "faire clignoter la sortie [MOTOR] tant que [COND] (rythme [SPEED])",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "4" },
+              COND: { type: Scratch.ArgumentType.BOOLEAN },
+              SPEED: { type: Scratch.ArgumentType.STRING, menu: "blinkSpeedMenu", defaultValue: "NORMAL" },
+            },
+          },
+          {
+            opcode: "setOutputBlinkMode",
+            blockType: Scratch.BlockType.COMMAND,
+            text: "clignoteur sur la sortie [MOTOR] : [BLINK_MODE]",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "4" },
+              BLINK_MODE: { type: Scratch.ArgumentType.STRING, menu: "blinkModeMenu", defaultValue: "NORMAL" },
+            },
+          },
+          {
+            opcode: "isMotorRunning",
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: "le moteur [MOTOR] tourne ?",
+            arguments: {
+              MOTOR: { type: Scratch.ArgumentType.STRING, menu: "motorMenu", defaultValue: "1" },
             },
           },
           {
@@ -561,9 +599,26 @@
             ],
           },
           onOffMenu: {
-            acceptReporters: false,
+            acceptReporters: true,
             items: [
               { text: "MARCHE", value: "ON" },
+              { text: "ARRÊT", value: "OFF" },
+            ],
+          },
+          blinkSpeedMenu: {
+            acceptReporters: false,
+            items: [
+              { text: "normal (2 clign./s)", value: "NORMAL" },
+              { text: "rapide (4 clign./s)", value: "FAST" },
+              { text: "lent (1 clign./s)", value: "SLOW" },
+            ],
+          },
+          blinkModeMenu: {
+            acceptReporters: false,
+            items: [
+              { text: "CLIGNOTER (normal)", value: "NORMAL" },
+              { text: "CLIGNOTER (rapide)", value: "FAST" },
+              { text: "CLIGNOTER (lent)", value: "SLOW" },
               { text: "ARRÊT", value: "OFF" },
             ],
           },
@@ -737,12 +792,19 @@
     }
 
     _buildMotorByte() {
-      return (
-        this.motors[0] |
-        (this.motors[1] << 2) |
-        (this.motors[2] << 4) |
-        (this.motors[3] << 6)
-      );
+      const now = performance.now();
+      let byte = 0;
+      for (let i = 0; i < 4; i++) {
+        let state = this.motors[i];
+        const period = this.blinkPeriodsMs[i];
+        if (period > 0) {
+          // Clignotement automatique non-bloquant (50% allumé, 50% éteint)
+          const phaseOn = Math.floor(now / (period / 2)) % 2 === 0;
+          state = phaseOn ? MOTOR_RIGHT : MOTOR_STOP;
+        }
+        byte |= (state & 0b11) << (i * 2);
+      }
+      return byte;
     }
 
     async _readBytesWithTimeout(expectedCount, timeoutMs = 150) {
@@ -858,6 +920,7 @@
 
     setMotorDirection(args) {
       const idx = this._parseMotorIndex(args.MOTOR);
+      this.blinkPeriodsMs[idx] = 0;
       this.motors[idx] = this._parseDirection(args.DIR);
     }
 
@@ -866,6 +929,7 @@
       const dir = this._parseDirection(args.DIR);
       const secs = Math.max(0, Number(args.SECS) || 0);
 
+      this.blinkPeriodsMs[idx] = 0;
       this.motors[idx] = dir;
       await new Promise((r) => setTimeout(r, secs * 1000));
       this.motors[idx] = MOTOR_STOP;
@@ -873,19 +937,65 @@
 
     setOutputState(args) {
       const idx = this._parseMotorIndex(args.MOTOR);
-      const state = String(args.STATE).toUpperCase();
-      this.motors[idx] =
-        state === "ON" || state === "MARCHE" || state === "1"
-          ? MOTOR_RIGHT
-          : MOTOR_STOP;
+      this.blinkPeriodsMs[idx] = 0;
+      const state = String(args.STATE).toUpperCase().trim();
+      const isOn =
+        args.STATE === true ||
+        state === "ON" ||
+        state === "MARCHE" ||
+        state === "TRUE" ||
+        state === "VRAI" ||
+        state === "1";
+      this.motors[idx] = isOn ? MOTOR_RIGHT : MOTOR_STOP;
+    }
+
+    setOutputFromBoolean(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      this.blinkPeriodsMs[idx] = 0;
+      this.motors[idx] = Boolean(args.COND) ? MOTOR_RIGHT : MOTOR_STOP;
+    }
+
+    _speedToPeriodMs(speedArg) {
+      const s = String(speedArg).toUpperCase();
+      if (s === "FAST" || s === "RAPIDE") return 250; // 4 Hz
+      if (s === "SLOW" || s === "LENT") return 900;   // ~1 Hz
+      return 480;                                     // ~2 Hz (Normal)
+    }
+
+    blinkOutputWhileBoolean(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      if (Boolean(args.COND)) {
+        this.blinkPeriodsMs[idx] = this._speedToPeriodMs(args.SPEED);
+      } else {
+        this.blinkPeriodsMs[idx] = 0;
+        this.motors[idx] = MOTOR_STOP;
+      }
+    }
+
+    setOutputBlinkMode(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      const mode = String(args.BLINK_MODE).toUpperCase();
+      if (mode === "OFF" || mode === "ARRET" || mode === "ARRÊT") {
+        this.blinkPeriodsMs[idx] = 0;
+        this.motors[idx] = MOTOR_STOP;
+      } else {
+        this.blinkPeriodsMs[idx] = this._speedToPeriodMs(mode);
+      }
+    }
+
+    isMotorRunning(args) {
+      const idx = this._parseMotorIndex(args.MOTOR);
+      return this.motors[idx] !== MOTOR_STOP || this.blinkPeriodsMs[idx] > 0;
     }
 
     stopMotor(args) {
       const idx = this._parseMotorIndex(args.MOTOR);
+      this.blinkPeriodsMs[idx] = 0;
       this.motors[idx] = MOTOR_STOP;
     }
 
     stopAllMotors() {
+      this.blinkPeriodsMs = [0, 0, 0, 0];
       this.motors = [MOTOR_STOP, MOTOR_STOP, MOTOR_STOP, MOTOR_STOP];
     }
 
