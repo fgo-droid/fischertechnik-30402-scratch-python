@@ -21,6 +21,7 @@
 | [`exemples/05_distributeur_automatique.py`](./exemples/05_distributeur_automatique.py) | **Projet Classique : Distributeur Automatique à Monnayeur** (détection de pièce, contrôle de stock `EX` et tiroir pousseur aller-retour). |
 | [`exemples/06_regulation_plotter_thonny.py`](./exemples/06_regulation_plotter_thonny.py) | **Régulation en boucle fermée & Serial Plotter** : asservissement 3-points, thermostat à hystérésis et tracé de courbes temps réel dans Thonny. |
 | [`exemples/07_jumeau_numerique_predictif.py`](./exemples/07_jumeau_numerique_predictif.py) | **🔮 Game Changer Industrie 4.0 : Jumeau Numérique & Maintenance Prédictive** (apprentissage automatique des temps de trajet, détection de friction et arrêt anti-casse). |
+| [`exemples/08_capteur_ia_decisions_api.py`](./exemples/08_capteur_ia_decisions_api.py) | **⚡ Gouvernance IA Temps Réel (`gemini-decision-1`)** : utilise la *Gemini Decisions API* (`noul` Yes/No & `score`, 150–250 ms, 0 output token) comme garde-fou et routeur cyber-physique. |
 | [`docs/CATALOGUE_PROJETS_30402.md`](./docs/CATALOGUE_PROJETS_30402.md) | **Répertoire de 8 Projets Calibrés pour le `30 402`** (avec plans de câblage complets des E/S et astuces d'ingénierie). |
 | [`docs/FICHE_MEMO_ATELIER.md`](./docs/FICHE_MEMO_ATELIER.md) | **Fiche Mémo Recto-Verso CoderDojo** (et sa version prête à imprimer [`docs/fiche_memo_imprimable.html`](./docs/fiche_memo_imprimable.html)). |
 
